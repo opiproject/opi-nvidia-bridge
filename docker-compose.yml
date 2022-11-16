@@ -1,0 +1,38 @@
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Dell Inc, or its subsidiaries.
+# Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+---
+version: "3.7"
+
+services:
+
+  opi-nvidia-server:
+    build:
+      context: .
+    ports:
+      - "50051:50051"
+    networks:
+      - opi
+    command: go run main.go -port=50051
+    healthcheck:
+      test: grpcurl -plaintext localhost:50051 list || exit 1
+
+  opi-test:
+    image: namely/grpc-cli
+    networks:
+      - opi
+    depends_on:
+      opi-nvidia-server:
+        condition: service_healthy
+    command: ls opi-nvidia-server:50051 opi_api.storage.v1.FrontendNvmeService -l
+
+  opi-client:
+    image: "ghcr.io/opiproject/opi-storage-client:main"
+    networks:
+      - opi
+    depends_on:
+      - opi-nvidia-server
+    command: /opi-storage-client -addr=opi-nvidia-server:50051
+
+networks:
+  opi:

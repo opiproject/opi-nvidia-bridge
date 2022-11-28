@@ -241,7 +241,7 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 			return &pb.NVMeController{Spec: &pb.NVMeControllerSpec{NvmeControllerId: int32(r.Cntlid)}}, nil
 		}
 	}
-	msg := fmt.Sprintf("Could not find NvmeControllerId: %s", controller.Spec.NvmeControllerId)
+	msg := fmt.Sprintf("Could not find NvmeControllerId: %d", controller.Spec.NvmeControllerId)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
@@ -390,7 +390,7 @@ func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 			return &pb.NVMeNamespace{Spec: &pb.NVMeNamespaceSpec{HostNsid: int32(r.Nsid)}}, nil
 		}
 	}
-	msg := fmt.Sprintf("Could not find HostNsid: %s", namespace.Spec.HostNsid)
+	msg := fmt.Sprintf("Could not find HostNsid: %d", namespace.Spec.HostNsid)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

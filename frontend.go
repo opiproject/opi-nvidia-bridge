@@ -303,9 +303,7 @@ func (s *server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNames
 	if !ok {
 		err := fmt.Errorf("unable to find subsystem %s", namespace.Spec.SubsystemId.Value)
 		log.Printf("error: %v", err)
-		// TODO: temp workaround
-		subsys = &pb.NVMeSubsystem{Spec: &pb.NVMeSubsystemSpec{Nqn: namespace.Spec.SubsystemId.Value}}
-		// return nil, err
+		return nil, err
 	}
 
 	// TODO: fix hard-coded Cntlid

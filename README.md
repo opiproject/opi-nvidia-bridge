@@ -40,3 +40,11 @@ func main()
     reflection.Register(s)
 }
 ```
+
+## Using docker
+
+```bash
+$ docker run --rm -it -v /var/tmp/:/var/tmp/ -p 50051:50051 ghcr.io/opiproject/opi-nvidia-bridge:main
+2022/11/29 00:03:55 plugin serevr is &{{}}
+2022/11/29 00:03:55 server listening at [::]:50051
+```

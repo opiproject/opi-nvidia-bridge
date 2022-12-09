@@ -395,5 +395,27 @@ func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 
 func (s *server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceStatsRequest) (*pb.NVMeNamespaceStatsResponse, error) {
 	log.Printf("NVMeNamespaceStats: Received from client: %v", in)
-	return nil, status.Errorf(codes.Unimplemented, "NVMeNamespaceStats method is not implemented")
+	namespace, ok := namespaces[in.NamespaceId.Value]
+	if !ok {
+		err := fmt.Errorf("unable to find key %s", in.NamespaceId.Value)
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	var result NvdaControllerNvmeStatsResult
+	err := call("controller_nvme_get_iostat", nil, &result)
+	if err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	log.Printf("Received from SPDK: %v", result)
+	for _, c := range result.Controllers {
+		for _, r := range c.Bdevs {
+			if r.BdevName == namespace.Spec.VolumeId.Value {
+				return &pb.NVMeNamespaceStatsResponse{Id: in.NamespaceId, Stats: fmt.Sprintf("%#v", r)}, nil
+			}
+		}
+	}
+	msg := fmt.Sprintf("Could not find BdevName: %d", namespace.Spec.VolumeId.Value)
+	log.Print(msg)
+	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

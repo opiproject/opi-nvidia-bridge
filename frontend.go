@@ -415,7 +415,7 @@ func (s *server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceSta
 			}
 		}
 	}
-	msg := fmt.Sprintf("Could not find BdevName: %d", namespace.Spec.VolumeId.Value)
+	msg := fmt.Sprintf("Could not find BdevName: %s", namespace.Spec.VolumeId.Value)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

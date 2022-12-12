@@ -411,7 +411,10 @@ func (s *server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceSta
 	for _, c := range result.Controllers {
 		for _, r := range c.Bdevs {
 			if r.BdevName == namespace.Spec.VolumeId.Value {
-				return &pb.NVMeNamespaceStatsResponse{Id: in.NamespaceId, Stats: fmt.Sprintf("%#v", r)}, nil
+				return &pb.NVMeNamespaceStatsResponse{Id: in.NamespaceId, Stats: &pb.VolumeStats{
+					ReadOpsCount:  int32(r.ReadIos),
+					WriteOpsCount: int32(r.WriteIos),
+				}}, nil
 			}
 		}
 	}

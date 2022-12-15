@@ -3,7 +3,7 @@ module github.com/opiproject/opi-nvidia-bridge
 go 1.19
 
 require (
-	github.com/opiproject/opi-api v0.0.0-20221215151834-b9358a2a96f8
+	github.com/opiproject/opi-api v0.0.0-20221215155400-a49a4ea1d561
 	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	google.golang.org/grpc v1.51.0
 	google.golang.org/protobuf v1.28.1

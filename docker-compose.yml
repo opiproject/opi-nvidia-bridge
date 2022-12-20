@@ -31,7 +31,8 @@ services:
     networks:
       - opi
     depends_on:
-      - opi-nvidia-server
+      opi-nvidia-server:
+        condition: service_healthy
     command: /opi-storage-client -addr=opi-nvidia-server:50051
 
 networks:

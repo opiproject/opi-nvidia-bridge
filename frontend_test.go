@@ -15,9 +15,9 @@ import (
 
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/status"
 	"google.golang.org/grpc/test/bufconn"
-	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
@@ -26,9 +26,7 @@ import (
 
 func dialer() func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1024 * 1024)
-
 	server := grpc.NewServer()
-
 	pb.RegisterFrontendNvmeServiceServer(server, &PluginFrontendNvme)
 
 	go func() {
@@ -163,15 +161,13 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		},
 	}
 
+	// start GRPC mockup server
 	ctx := context.Background()
-
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -184,6 +180,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	}
 	defer ln.Close()
 
+	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go spdkMockServer(ln, tt.spdk)
@@ -264,15 +261,13 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 		},
 	}
 
+	// start GRPC mockup server
 	ctx := context.Background()
-
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -285,6 +280,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	}
 	defer ln.Close()
 
+	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			go spdkMockServer(ln, tt.spdk)
@@ -324,17 +320,16 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 		},
 	}
 
+	// start GRPC mockup server
 	ctx := context.Background()
-
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := &pb.UpdateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
@@ -358,7 +353,116 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
+	tests := []struct {
+		name    string
+		out     []*pb.NVMeSubsystem
+		spdk    string
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			nil,
+			`{"id":11,"error":{"code":0,"message":""},"result":[]}`,
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+		},
+		{
+			"valid request with empty SPDK responce",
+			nil,
+			"",
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_list: %v", "EOF"),
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			nil,
+			`{"id":0,"error":{"code":0,"message":""},"result":[]}`,
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_list: %v", "json response ID mismatch"),
+		},
+		{
+			"valid request with error code from SPDK responce",
+			nil,
+			`{"id":14,"error":{"code":1,"message":"myopierr"},"result":[]}`,
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_list: %v", "json response error: myopierr"),
+		},
+		{
+			"valid request with valid SPDK responce",
+			[]*pb.NVMeSubsystem{
+				{
+					Spec: &pb.NVMeSubsystemSpec{
+						Nqn:          "nqn.2022-09.io.spdk:opi1",
+						SerialNumber: "OpiSerialNumber1",
+						ModelNumber:  "OpiModelNumber1",
+					},
+				},
+				{
+					Spec: &pb.NVMeSubsystemSpec{
+						Nqn:          "nqn.2022-09.io.spdk:opi2",
+						SerialNumber: "OpiSerialNumber2",
+						ModelNumber:  "OpiModelNumber2",
+					},
+				},
+				{
+					Spec: &pb.NVMeSubsystemSpec{
+						Nqn:          "nqn.2022-09.io.spdk:opi3",
+						SerialNumber: "OpiSerialNumber3",
+						ModelNumber:  "OpiModelNumber3",
+					},
+				},
+			},
+			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
+			`{"id":15,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`,
+			codes.OK,
+			"",
+		},
+	}
 
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			go spdkMockServer(ln, tt.spdk)
+			request := &pb.ListNVMeSubsystemsRequest{}
+			response, err := client.ListNVMeSubsystems(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.NvMeSubsystems, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.NvMeSubsystems)
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
@@ -382,17 +486,16 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 		},
 	}
 
+	// start GRPC mockup server
 	ctx := context.Background()
-
 	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer conn.Close()
-
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			request := &pb.NVMeSubsystemStatsRequest{SubsystemId: &pc.ObjectKey{Value: tt.in}}

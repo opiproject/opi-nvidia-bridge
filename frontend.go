@@ -53,6 +53,7 @@ func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 		log.Printf("error: %v", err)
 		return nil, err
 	}
+	response.Status = &pb.NVMeSubsystemStatus{FirmwareRevision: "TBD"}
 	return response, nil
 }
 

@@ -308,7 +308,53 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.NVMeSubsystem
+		out     *pb.NVMeSubsystem
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"unimplemented method",
+			&pb.NVMeSubsystem{},
+			nil,
+			codes.Unimplemented,
+			fmt.Sprintf("%v method is not implemented", "UpdateNVMeSubsystem"),
+		},
+	}
 
+	ctx := context.Background()
+
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := &pb.UpdateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
+			response, err := client.UpdateNVMeSubsystem(ctx, request)
+			if response != nil {
+				t.Error("response: expected", codes.Unimplemented, "received", response)
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {

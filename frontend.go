@@ -266,7 +266,7 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 
 func (s *server) NVMeControllerStats(ctx context.Context, in *pb.NVMeControllerStatsRequest) (*pb.NVMeControllerStatsResponse, error) {
 	log.Printf("NVMeControllerStats: Received from client: %v", in)
-	return nil, status.Errorf(codes.Unimplemented, "UpdateNVMeSubsystem method is not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "NVMeControllerStats method is not implemented")
 }
 
 // ////////////////////////////////////////////////////////

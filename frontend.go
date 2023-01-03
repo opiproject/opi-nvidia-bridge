@@ -42,6 +42,11 @@ func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 	}
 	subsystems[in.NvMeSubsystem.Spec.Id.Value] = in.NvMeSubsystem
 	log.Printf("Received from SPDK: %v", result)
+	if !result {
+		msg := fmt.Sprintf("Could not create NQN: %s", in.NvMeSubsystem.Spec.Nqn)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	response := &pb.NVMeSubsystem{}
 	err = deepcopier.Copy(in.NvMeSubsystem).To(response)
 	if err != nil {
@@ -69,6 +74,11 @@ func (s *server) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsy
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if !result {
+		msg := fmt.Sprintf("Could not delete NQN: %s", subsys.Spec.Nqn)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	delete(subsystems, subsys.Spec.Id.Value)
 	return &emptypb.Empty{}, nil
 }

@@ -70,6 +70,7 @@ func call(method string, args, result interface{}) error {
 		Result: result,
 	}
 	err = json.NewDecoder(resp).Decode(&response)
+	// TODO: use decoder.DisallowUnknownFields()
 	jsonresponse, _ := json.Marshal(response)
 	log.Printf("Received from SPDK: %s", jsonresponse)
 	if err != nil {

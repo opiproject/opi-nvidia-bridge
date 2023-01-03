@@ -161,8 +161,11 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 					SerialNumber: "OpiSerialNumber",
 					ModelNumber:  "OpiModelNumber",
 				},
+				Status: &pb.NVMeSubsystemStatus{
+					FirmwareRevision: "SPDK v20.10",
+				},
 			},
-			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`, `{"jsonrpc":"2.0","id":%d,"result":{"version":"SPDK v20.10","fields":{"major":20,"minor":10,"patch":0,"suffix":""}}}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
 			codes.OK,
 			"",
 		},
@@ -197,8 +200,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
 					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
 				}
-				// TODO: compare more Status fields
-				if response.Status.FirmwareRevision != "TBD" {
+				if !reflect.DeepEqual(response.Status, tt.out.Status) {
 					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
 				}
 			}

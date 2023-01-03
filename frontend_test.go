@@ -214,7 +214,97 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *emptypb.Empty
+		spdk    string
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			"subsystem-test",
+			nil,
+			`{"id":6,"error":{"code":0,"message":""},"result":false}`,
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not delete NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+		},
+		{
+			"valid request with empty SPDK responce",
+			"subsystem-test",
+			nil,
+			"",
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_delete: %v", "EOF"),
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			"subsystem-test",
+			nil,
+			`{"id":0,"error":{"code":0,"message":""},"result":false}`,
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_delete: %v", "json response ID mismatch"),
+		},
+		{
+			"valid request with error code from SPDK responce",
+			"subsystem-test",
+			nil,
+			`{"id":9,"error":{"code":1,"message":"myopierr"},"result":false}`,
+			codes.Unknown,
+			fmt.Sprintf("subsystem_nvme_delete: %v", "json response error: myopierr"),
+		},
+		{
+			"valid request with valid SPDK responce",
+			"subsystem-test",
+			&emptypb.Empty{},
+			`{"id":10,"error":{"code":0,"message":""},"result":true}`, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
+			codes.OK,
+			"",
+		},
+	}
 
+	ctx := context.Background()
+
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			go spdkMockServer(ln, tt.spdk)
+			request := &pb.DeleteNVMeSubsystemRequest{Name: tt.in}
+			response, err := client.DeleteNVMeSubsystem(ctx, request)
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+			if reflect.TypeOf(response) != reflect.TypeOf(tt.out) {
+				t.Error("response: expected", reflect.TypeOf(tt.out), "received", reflect.TypeOf(response))
+			}
+		})
+	}
 }
 
 func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {

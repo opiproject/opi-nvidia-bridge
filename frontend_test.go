@@ -10,8 +10,8 @@ import (
 	"log"
 	"net"
 	"os"
-	"strings"
 	"reflect"
+	"strings"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -554,6 +554,257 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 	}
 }
 
+func TestFrontEnd_CreateNVMeController(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.NVMeController
+		out     *pb.NVMeController
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 1,
+				},
+			},
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf0", "cntlid": -1}}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not create CTRL: %v", "controller-test"),
+		},
+		{
+			"valid request with empty SPDK responce",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 1,
+				},
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_create: %v", "EOF"),
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 1,
+				},
+			},
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf0", "cntlid": 17}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_create: %v", "json response ID mismatch"),
+		},
+		{
+			"valid request with error code from SPDK responce",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 1,
+				},
+			},
+			nil,
+			[]string{`{"id":%d,"error":{"code":-32602,"message":"Invalid parameters"}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_create: %v", "json response error: Invalid parameters"),
+		},
+		{
+			"valid request with valid SPDK responce",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 17,
+				},
+			},
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					Id:               &pc.ObjectKey{Value: "controller-test"},
+					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 17,
+				},
+				Status: &pb.NVMeControllerStatus{
+					Active: true,
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf0", "cntlid": 17}}`},
+			codes.OK,
+			"",
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			go spdkMockServer(ln, tt.spdk)
+			request := &pb.CreateNVMeControllerRequest{NvMeController: tt.in}
+			response, err := client.CreateNVMeController(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
+					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
+				}
+				if !reflect.DeepEqual(response.Status, tt.out.Status) {
+					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_UpdateNVMeController(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.NVMeController
+		out     *pb.NVMeController
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"unimplemented method",
+			&pb.NVMeController{},
+			nil,
+			codes.Unimplemented,
+			fmt.Sprintf("%v method is not implemented", "UpdateNVMeController"),
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := &pb.UpdateNVMeControllerRequest{NvMeController: tt.in}
+			response, err := client.UpdateNVMeController(ctx, request)
+			if response != nil {
+				t.Error("response: expected", codes.Unimplemented, "received", response)
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_ListNVMeControllers(t *testing.T) {
+}
+
+func TestFrontEnd_GetNVMeController(t *testing.T) {
+}
+
+func TestFrontEnd_NVMeControllerStats(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *pb.NVMeControllerStatsResponse
+		errCode codes.Code
+		errMsg  string
+	}{
+		{
+			"unimplemented method",
+			"controller-test",
+			nil,
+			codes.Unimplemented,
+			fmt.Sprintf("%v method is not implemented", "NVMeControllerStats"),
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := &pb.NVMeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
+			response, err := client.NVMeControllerStats(ctx, request)
+			if response != nil {
+				t.Error("response: expected", codes.Unimplemented, "received", response)
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_DeleteNVMeController(t *testing.T) {
+}
+
 func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	tests := []struct {
 		name    string
@@ -662,114 +913,4 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			}
 		})
 	}
-}
-
-func TestFrontEnd_CreateNVMeController(t *testing.T) {
-}
-
-func TestFrontEnd_UpdateNVMeController(t *testing.T) {
-	tests := []struct {
-		name    string
-		in      *pb.NVMeController
-		out     *pb.NVMeController
-		errCode codes.Code
-		errMsg  string
-	}{
-		{
-			"unimplemented method",
-			&pb.NVMeController{},
-			nil,
-			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "UpdateNVMeController"),
-		},
-	}
-
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	client := pb.NewFrontendNvmeServiceClient(conn)
-
-	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request := &pb.UpdateNVMeControllerRequest{NvMeController: tt.in}
-			response, err := client.UpdateNVMeController(ctx, request)
-			if response != nil {
-				t.Error("response: expected", codes.Unimplemented, "received", response)
-			}
-
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
-				}
-			}
-		})
-	}
-}
-
-func TestFrontEnd_ListNVMeControllers(t *testing.T) {
-}
-
-func TestFrontEnd_GetNVMeController(t *testing.T) {
-}
-
-func TestFrontEnd_NVMeControllerStats(t *testing.T) {
-	tests := []struct {
-		name    string
-		in      string
-		out     *pb.NVMeControllerStatsResponse
-		errCode codes.Code
-		errMsg  string
-	}{
-		{
-			"unimplemented method",
-			"controller-test",
-			nil,
-			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "NVMeControllerStats"),
-		},
-	}
-
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
-	defer conn.Close()
-	client := pb.NewFrontendNvmeServiceClient(conn)
-
-	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			request := &pb.NVMeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
-			response, err := client.NVMeControllerStats(ctx, request)
-			if response != nil {
-				t.Error("response: expected", codes.Unimplemented, "received", response)
-			}
-
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
-				}
-			}
-		})
-	}
-}
-
-func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 }

@@ -171,8 +171,14 @@ func (s *server) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCont
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if result.Cntlid < 0 {
+		msg := fmt.Sprintf("Could not create CTRL: %s", in.NvMeController.Spec.Id.Value)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	controllers[in.NvMeController.Spec.Id.Value] = in.NvMeController
 	controllers[in.NvMeController.Spec.Id.Value].Spec.NvmeControllerId = int32(result.Cntlid)
+	controllers[in.NvMeController.Spec.Id.Value].Status = &pb.NVMeControllerStatus{Active: true}
 	response := &pb.NVMeController{Spec: &pb.NVMeControllerSpec{Id: &pc.ObjectKey{Value: "TBD"}}}
 	err = deepcopier.Copy(in.NvMeController).To(response)
 	if err != nil {

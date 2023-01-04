@@ -1305,6 +1305,148 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     []*pb.NVMeNamespace
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+			true,
+		},
+		{
+			"valid request with invalid marshal SPDK responce",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type main.NvdaControllerNvmeNamespaceListResult"),
+			true,
+		},
+		{
+			"valid request with empty SPDK responce",
+			"subsystem-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK responce",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK responce",
+			"subsystem-test",
+			// Id:          &pc.ObjectKey{Value: "namespace-test"},
+			// SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+			// HostNsid:    0,
+			// VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+			// Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+			// Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+			// Eui64:       1967554867335598546,
+			[]*pb.NVMeNamespace{
+				{
+					Spec: &pb.NVMeNamespaceSpec{
+						HostNsid: 11,
+					},
+				},
+				{
+					Spec: &pb.NVMeNamespaceSpec{
+						HostNsid: 12,
+					},
+				},
+				{
+					Spec: &pb.NVMeNamespaceSpec{
+						HostNsid: 13,
+					},
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf1", "cntlid": 1, "Namespaces": [{"nsid": 11, "bdev": "Malloc0", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 12, "bdev": "Malloc1", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 13, "bdev": "Malloc2", "bdev_type": "spdk", "qn": "", "protocol": ""}]}}`},
+			codes.OK,
+			"",
+			true,
+		},
+		{
+			"valid request with unknown key",
+			"unknown-subsystem-id",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("unable to find key %v", "unknown-subsystem-id"),
+			false,
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go spdkMockServer(ln, tt.spdk)
+			}
+			request := &pb.ListNVMeNamespacesRequest{Parent: tt.in}
+			response, err := client.ListNVMeNamespaces(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.NvMeNamespaces, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.NvMeNamespaces)
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_GetNVMeNamespace(t *testing.T) {

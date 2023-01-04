@@ -426,7 +426,7 @@ func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 	for i := range result.Namespaces {
 		r := &result.Namespaces[i]
 		if r.Nsid == int(namespace.Spec.HostNsid) {
-			return &pb.NVMeNamespace{Spec: &pb.NVMeNamespaceSpec{HostNsid: int32(r.Nsid)}}, nil
+			return &pb.NVMeNamespace{Spec: &pb.NVMeNamespaceSpec{HostNsid: int32(r.Nsid)}, Status: &pb.NVMeNamespaceStatus{PciState: 2, PciOperState: 1}}, nil
 		}
 	}
 	msg := fmt.Sprintf("Could not find HostNsid: %d", namespace.Spec.HostNsid)

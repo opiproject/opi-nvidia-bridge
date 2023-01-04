@@ -1082,6 +1082,72 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 	}
 }
 
+func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
+}
+
+func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.NVMeNamespace
+		out     *pb.NVMeNamespace
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"unimplemented method",
+			&pb.NVMeNamespace{},
+			nil,
+			codes.Unimplemented,
+			fmt.Sprintf("%v method is not implemented", "UpdateNVMeNamespace"),
+			false,
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			request := &pb.UpdateNVMeNamespaceRequest{NvMeNamespace: tt.in}
+			response, err := client.UpdateNVMeNamespace(ctx, request)
+			if response != nil {
+				t.Error("response: expected", codes.Unimplemented, "received", response)
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
+}
+
+func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
+}
+
+func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
+}
+
+func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
+}
+
 func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	tests := []struct {
 		name    string

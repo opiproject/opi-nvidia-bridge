@@ -311,14 +311,19 @@ func (s *server) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNames
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if !result {
+		msg := fmt.Sprintf("Could not create NS: %s", in.NvMeNamespace.Spec.Id.Value)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	namespaces[in.NvMeNamespace.Spec.Id.Value] = in.NvMeNamespace
-
 	response := &pb.NVMeNamespace{}
 	err = deepcopier.Copy(in.NvMeNamespace).To(response)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}
+	response.Status = &pb.NVMeNamespaceStatus{PciState: 2, PciOperState: 1}
 	return response, nil
 }
 

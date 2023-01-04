@@ -1083,6 +1083,174 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 }
 
 func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.NVMeNamespace
+		out     *pb.NVMeNamespace
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+			},
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not create NS: %v", "namespace-test"),
+			true,
+		},
+		{
+			"valid request with empty SPDK responce",
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_attach: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+			},
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_attach: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK responce",
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+			},
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_namespace_attach: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK responce",
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+			},
+			&pb.NVMeNamespace{
+				Spec: &pb.NVMeNamespaceSpec{
+					Id:          &pc.ObjectKey{Value: "namespace-test"},
+					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+					HostNsid:    0,
+					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+					Eui64:       1967554867335598546,
+				},
+				Status: &pb.NVMeNamespaceStatus{
+					PciState:     2,
+					PciOperState: 1,
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`},
+			codes.OK,
+			"",
+			true,
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go spdkMockServer(ln, tt.spdk)
+			}
+			request := &pb.CreateNVMeNamespaceRequest{NvMeNamespace: tt.in}
+			response, err := client.CreateNVMeNamespace(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
+					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
+				}
+				if !reflect.DeepEqual(response.Status, tt.out.Status) {
+					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {

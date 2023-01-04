@@ -355,6 +355,11 @@ func (s *server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNames
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if !result {
+		msg := fmt.Sprintf("Could not delete NS: %s", namespace.Spec.SubsystemId.Value)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	delete(namespaces, namespace.Spec.Id.Value)
 	return &emptypb.Empty{}, nil
 }

@@ -212,6 +212,11 @@ func (s *server) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeCont
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if !result {
+		msg := fmt.Sprintf("Could not delete NQN:ID %s:%d", subsys.Spec.Nqn, controller.Spec.NvmeControllerId)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
+	}
 	delete(controllers, controller.Spec.Id.Value)
 	return &emptypb.Empty{}, nil
 }

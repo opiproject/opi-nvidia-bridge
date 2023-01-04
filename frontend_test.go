@@ -1516,11 +1516,11 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 		},
 		{
 			"valid request with unknown key",
-			"unknown-subsystem-id",
+			"unknown-namespace-id",
 			nil,
 			[]string{""},
 			codes.Unknown,
-			fmt.Sprintf("unable to find key %v", "unknown-subsystem-id"),
+			fmt.Sprintf("unable to find key %v", "unknown-namespace-id"),
 			false,
 		},
 	}
@@ -1576,6 +1576,128 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *pb.VolumeStats
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not find BdevName: %v", "Malloc1"),
+			true,
+		},
+		{
+			"valid request with invalid marshal SPDK responce",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go struct field .result of type main.NvdaControllerNvmeStatsResult"),
+			true,
+		},
+		{
+			"valid request with empty SPDK responce",
+			"namespace-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			"namespace-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK responce",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK responce",
+			"namespace-test",
+			&pb.VolumeStats{
+				ReadOpsCount: 12345,
+				WriteOpsCount: 54321,
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result": {"controllers":[{"name":"NvmeEmu0pf1","bdevs":[{"bdev_name":"Malloc0","read_ios":55,"completed_read_ios":55,"write_ios":33,"completed_write_ios":33,"flush_ios":0,"completed_flush_ios":0,"err_read_ios":0,"err_write_ios":0,"err_flush_ios":0},{"bdev_name":"Malloc1","read_ios":12345,"completed_read_ios":12345,"write_ios":54321,"completed_write_ios":54321,"flush_ios":0,"completed_flush_ios":0,"err_read_ios":0,"err_write_ios":0,"err_flush_ios":0}]}]}}`},
+			codes.OK,
+			"",
+			true,
+		},
+		{
+			"valid request with unknown key",
+			"unknown-namespace-id",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("unable to find key %v", "unknown-namespace-id"),
+			false,
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go spdkMockServer(ln, tt.spdk)
+			}
+			request := &pb.NVMeNamespaceStatsRequest{NamespaceId: &pc.ObjectKey{Value: tt.in}}
+			response, err := client.NVMeNamespaceStats(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.Stats, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.Stats)
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {

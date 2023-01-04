@@ -454,6 +454,9 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 					SerialNumber: "OpiSerialNumber3",
 					ModelNumber:  "OpiModelNumber3",
 				},
+				Status: &pb.NVMeSubsystemStatus{
+					FirmwareRevision: "TBD",
+				},
 			},
 			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`},
@@ -503,8 +506,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
 					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
 				}
-				// TODO: compare more Status fields
-				if response.Status.FirmwareRevision != "TBD" {
+				if !reflect.DeepEqual(response.Status, tt.out.Status) {
 					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
 				}
 			}
@@ -907,6 +909,126 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 }
 
 func TestFrontEnd_GetNVMeController(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *pb.NVMeController
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK responce",
+			"controller-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not find NvmeControllerId: %v", "17"),
+			true,
+		},
+		{
+			"valid request with empty SPDK responce",
+			"controller-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK responce",
+			"controller-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK responce",
+			"controller-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK responce",
+			"controller-test",
+			&pb.NVMeController{
+				Spec: &pb.NVMeControllerSpec{
+					NvmeControllerId: 17,
+				},
+				Status: &pb.NVMeControllerStatus{
+					Active: true,
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 1, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 1, "pci_bdf": "ca:00.3"},{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 17, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 2, "pci_bdf": "ca:00.4"},{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 3, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 3, "pci_bdf": "ca:00.5"}]}`},
+			codes.OK,
+			"",
+			true,
+		},
+		{
+			"valid request with unknown key",
+			"unknown-subsystem-id",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("unable to find key %v", "unknown-subsystem-id"),
+			false,
+		},
+	}
+
+	// start GRPC mockup server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer conn.Close()
+	client := pb.NewFrontendNvmeServiceClient(conn)
+
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	defer ln.Close()
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go spdkMockServer(ln, tt.spdk)
+			}
+			request := &pb.GetNVMeControllerRequest{Name: tt.in}
+			response, err := client.GetNVMeController(ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
+					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
+				}
+				if !reflect.DeepEqual(response.Status, tt.out.Status) {
+					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
 }
 
 func TestFrontEnd_NVMeControllerStats(t *testing.T) {

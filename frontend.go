@@ -250,7 +250,9 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 	log.Printf("GetNVMeController: Received from client: %v", in)
 	controller, ok := controllers[in.Name]
 	if !ok {
-		return nil, fmt.Errorf("error finding controller %s", in.Name)
+		err := fmt.Errorf("unable to find key %s", in.Name)
+		log.Printf("error: %v", err)
+		return nil, err
 	}
 	var result []NvdaControllerNvmeListResult
 	err := call("controller_list", nil, &result)
@@ -262,7 +264,7 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 	for i := range result {
 		r := &result[i]
 		if r.Cntlid == int(controller.Spec.NvmeControllerId) && r.Type == "nvme" {
-			return &pb.NVMeController{Spec: &pb.NVMeControllerSpec{NvmeControllerId: int32(r.Cntlid)}}, nil
+			return &pb.NVMeController{Spec: &pb.NVMeControllerSpec{NvmeControllerId: int32(r.Cntlid)}, Status: &pb.NVMeControllerStatus{Active: true}}, nil
 		}
 	}
 	msg := fmt.Sprintf("Could not find NvmeControllerId: %d", controller.Spec.NvmeControllerId)

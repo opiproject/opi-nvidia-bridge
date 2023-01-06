@@ -1,13 +1,9 @@
-# syntax=docker/dockerfile:1
+# SPDX-License-Identifier: Apache-2.0
+# Copyright (c) 2022 Dell Inc, or its subsidiaries.
 
-# Alpine is chosen for its small footprint
-# compared to Ubuntu
-FROM docker.io/library/golang:1.19.4
+FROM docker.io/library/golang:1.19.4 as builder
 
 WORKDIR /app
-
-# install curl (healthcheck)
-RUN go install github.com/fullstorydev/grpcurl/cmd/grpcurl@v1.8.7
 
 # Download necessary Go modules
 COPY go.mod ./
@@ -16,8 +12,15 @@ RUN go mod download
 
 # build an app
 COPY *.go ./
-RUN go build -v -buildmode=plugin -o /opi-nvidia-bridge.so ./frontend.go ./spdk.go ./jsonrpc.go
+RUN go build -v -buildmode=plugin  -o /opi-nvidia-bridge.so ./frontend.go ./spdk.go ./jsonrpc.go \
+ && go build -v -buildmode=default -o /opi-nvidia-bridge    ./main.go
 
+# second stage to reduce image size
+FROM alpine:3.17
+RUN apk add --no-cache libc6-compat
+COPY --from=builder /opi-nvidia-bridge /
+COPY --from=builder /opi-nvidia-bridge.so /
+COPY --from=docker.io/fullstorydev/grpcurl:v1.8.7-alpine /bin/grpcurl /usr/local/bin/
 EXPOSE 50051
-CMD [ "go", "run", "main.go", "-port=50051" ]
+CMD [ "/opi-nvidia-bridge", "-port=50051" ]
 HEALTHCHECK CMD grpcurl -plaintext localhost:50051 list || exit 1

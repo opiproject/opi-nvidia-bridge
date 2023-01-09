@@ -28,7 +28,7 @@ import (
 func dialer() func(context.Context, string) (net.Conn, error) {
 	listener := bufconn.Listen(1024 * 1024)
 	server := grpc.NewServer()
-	pb.RegisterFrontendNvmeServiceServer(server, &PluginFrontendNvme)
+	pb.RegisterFrontendNvmeServiceServer(server, &pluginFrontendNvme)
 
 	go func() {
 		if err := server.Serve(listener); err != nil {
@@ -62,9 +62,9 @@ func spdkMockServer(l net.Listener, toSend []string) {
 		}
 
 		log.Printf("SPDK mockup server: got : %s", string(data))
-		log.Printf("SPDK mockup server: snd : %s", string(spdk))
+		log.Printf("SPDK mockup server: snd : %s", spdk)
 
-		_, err = fd.Write([]byte(string(spdk)))
+		_, err = fd.Write([]byte(spdk))
 		if err != nil {
 			log.Fatal("Write: ", err)
 		}
@@ -76,6 +76,12 @@ func spdkMockServer(l net.Listener, toSend []string) {
 }
 
 func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
+	spec := &pb.NVMeSubsystemSpec{
+		Id:           &pc.ObjectKey{Value: "subsystem-test"},
+		Nqn:          "nqn.2022-09.io.spdk:opi3",
+		SerialNumber: "OpiSerialNumber",
+		ModelNumber:  "OpiModelNumber",
+	}
 	tests := []struct {
 		name    string
 		in      *pb.NVMeSubsystem
@@ -86,14 +92,9 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
-					Id:           &pc.ObjectKey{Value: "subsystem-test"},
-					Nqn:          "nqn.2022-09.io.spdk:opi3",
-					SerialNumber: "OpiSerialNumber",
-					ModelNumber:  "OpiModelNumber",
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -102,14 +103,9 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
-					Id:           &pc.ObjectKey{Value: "subsystem-test"},
-					Nqn:          "nqn.2022-09.io.spdk:opi3",
-					SerialNumber: "OpiSerialNumber",
-					ModelNumber:  "OpiModelNumber",
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{""},
@@ -118,14 +114,9 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
-					Id:           &pc.ObjectKey{Value: "subsystem-test"},
-					Nqn:          "nqn.2022-09.io.spdk:opi3",
-					SerialNumber: "OpiSerialNumber",
-					ModelNumber:  "OpiModelNumber",
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -134,14 +125,9 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
-					Id:           &pc.ObjectKey{Value: "subsystem-test"},
-					Nqn:          "nqn.2022-09.io.spdk:opi3",
-					SerialNumber: "OpiSerialNumber",
-					ModelNumber:  "OpiModelNumber",
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -150,14 +136,9 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
-					Id:           &pc.ObjectKey{Value: "subsystem-test"},
-					Nqn:          "nqn.2022-09.io.spdk:opi3",
-					SerialNumber: "OpiSerialNumber",
-					ModelNumber:  "OpiModelNumber",
-				},
+				Spec: spec,
 			},
 			&pb.NVMeSubsystem{
 				Spec: &pb.NVMeSubsystemSpec{
@@ -170,7 +151,8 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 					FirmwareRevision: "SPDK v20.10",
 				},
 			},
-			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`, `{"jsonrpc":"2.0","id":%d,"result":{"version":"SPDK v20.10","fields":{"major":20,"minor":10,"patch":0,"suffix":""}}}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`,
+				`{"jsonrpc":"2.0","id":%d,"result":{"version":"SPDK v20.10","fields":{"major":20,"minor":10,"patch":0,"suffix":""}}}`},
 			codes.OK,
 			"",
 			true,
@@ -183,7 +165,12 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -194,7 +181,12 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -252,7 +244,12 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// run tests
@@ -288,7 +285,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.InvalidArgument,
@@ -296,7 +293,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			nil,
 			[]string{""},
 			codes.Unknown,
@@ -304,7 +301,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
@@ -312,7 +309,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
 			codes.Unknown,
@@ -320,7 +317,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			[]*pb.NVMeSubsystem{
 				{
 					Spec: &pb.NVMeSubsystemSpec{
@@ -358,7 +355,12 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -369,7 +371,12 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -410,7 +417,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -419,7 +426,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -428,7 +435,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -437,7 +444,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -446,7 +453,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"subsystem-test",
 			&pb.NVMeSubsystem{
 				Spec: &pb.NVMeSubsystemSpec{
@@ -481,7 +488,12 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -492,7 +504,12 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -550,7 +567,12 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// run tests
@@ -577,6 +599,18 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 }
 
 func TestFrontEnd_CreateNVMeController(t *testing.T) {
+	spec := &pb.NVMeControllerSpec{
+		Id:               &pc.ObjectKey{Value: "controller-test"},
+		SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+		PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+		NvmeControllerId: 1,
+	}
+	controllerSpec := &pb.NVMeControllerSpec{
+		Id:               &pc.ObjectKey{Value: "controller-test"},
+		SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
+		PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+		NvmeControllerId: 17,
+	}
 	tests := []struct {
 		name    string
 		in      *pb.NVMeController
@@ -587,14 +621,9 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
-					Id:               &pc.ObjectKey{Value: "controller-test"},
-					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
-					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
-					NvmeControllerId: 1,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf0", "cntlid": -1}}`},
@@ -603,14 +632,9 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
-					Id:               &pc.ObjectKey{Value: "controller-test"},
-					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
-					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
-					NvmeControllerId: 1,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{""},
@@ -619,14 +643,9 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
-					Id:               &pc.ObjectKey{Value: "controller-test"},
-					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
-					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
-					NvmeControllerId: 1,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf0", "cntlid": 17}}`},
@@ -635,14 +654,9 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
-					Id:               &pc.ObjectKey{Value: "controller-test"},
-					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
-					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
-					NvmeControllerId: 1,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":-32602,"message":"Invalid parameters"}}`},
@@ -651,14 +665,9 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
-					Id:               &pc.ObjectKey{Value: "controller-test"},
-					SubsystemId:      &pc.ObjectKey{Value: "subsystem-test"},
-					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
-					NvmeControllerId: 17,
-				},
+				Spec: controllerSpec,
 			},
 			&pb.NVMeController{
 				Spec: &pb.NVMeControllerSpec{
@@ -684,7 +693,12 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -695,7 +709,12 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -753,7 +772,12 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// run tests
@@ -790,7 +814,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -799,7 +823,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -808,7 +832,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -817,7 +841,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -826,7 +850,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"subsystem-test",
 			[]*pb.NVMeController{
 				{
@@ -867,7 +891,12 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -878,7 +907,12 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -919,7 +953,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -928,7 +962,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"controller-test",
 			nil,
 			[]string{""},
@@ -937,7 +971,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -946,7 +980,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -955,7 +989,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"controller-test",
 			&pb.NVMeController{
 				Spec: &pb.NVMeControllerSpec{
@@ -987,7 +1021,12 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -998,7 +1037,12 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1056,7 +1100,12 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// run tests
@@ -1083,6 +1132,24 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 }
 
 func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
+	spec := &pb.NVMeNamespaceSpec{
+		Id:          &pc.ObjectKey{Value: "namespace-test"},
+		SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+		HostNsid:    0,
+		VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+		Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+		Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+		Eui64:       1967554867335598546,
+	}
+	namespaceSpec := &pb.NVMeNamespaceSpec{
+		Id:          &pc.ObjectKey{Value: "namespace-test"},
+		SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
+		HostNsid:    22,
+		VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+		Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
+		Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
+		Eui64:       1967554867335598546,
+	}
 	tests := []struct {
 		name    string
 		in      *pb.NVMeNamespace
@@ -1093,17 +1160,9 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
-					Id:          &pc.ObjectKey{Value: "namespace-test"},
-					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
-					HostNsid:    0,
-					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
-					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
-					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
-					Eui64:       1967554867335598546,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1112,17 +1171,9 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
-					Id:          &pc.ObjectKey{Value: "namespace-test"},
-					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
-					HostNsid:    0,
-					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
-					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
-					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
-					Eui64:       1967554867335598546,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{""},
@@ -1131,17 +1182,9 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
-					Id:          &pc.ObjectKey{Value: "namespace-test"},
-					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
-					HostNsid:    0,
-					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
-					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
-					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
-					Eui64:       1967554867335598546,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1150,17 +1193,9 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
-					Id:          &pc.ObjectKey{Value: "namespace-test"},
-					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
-					HostNsid:    0,
-					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
-					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
-					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
-					Eui64:       1967554867335598546,
-				},
+				Spec: spec,
 			},
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1169,17 +1204,9 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
-					Id:          &pc.ObjectKey{Value: "namespace-test"},
-					SubsystemId: &pc.ObjectKey{Value: "subsystem-test"},
-					HostNsid:    22,
-					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
-					Uuid:        &pc.Uuid{Value: "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb"},
-					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
-					Eui64:       1967554867335598546,
-				},
+				Spec: namespaceSpec,
 			},
 			&pb.NVMeNamespace{
 				Spec: &pb.NVMeNamespaceSpec{
@@ -1209,7 +1236,12 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1220,7 +1252,12 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1278,7 +1315,12 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// run tests
@@ -1315,7 +1357,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1324,7 +1366,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with invalid marshal SPDK responce",
+			"valid request with invalid marshal SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1333,7 +1375,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -1342,7 +1384,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1351,7 +1393,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1360,7 +1402,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"subsystem-test",
 			[]*pb.NVMeNamespace{
 				{
@@ -1401,7 +1443,12 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1412,7 +1459,12 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1453,7 +1505,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":17,"Namespaces":null}}`},
@@ -1462,7 +1514,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with invalid marshal SPDK responce",
+			"valid request with invalid marshal SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1471,7 +1523,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1480,7 +1532,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1489,7 +1541,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1498,7 +1550,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"namespace-test",
 			&pb.NVMeNamespace{
 				Spec: &pb.NVMeNamespaceSpec{
@@ -1531,7 +1583,12 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1542,7 +1599,12 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1586,7 +1648,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -1595,7 +1657,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with invalid marshal SPDK responce",
+			"valid request with invalid marshal SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1604,7 +1666,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1613,7 +1675,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -1622,7 +1684,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1631,10 +1693,10 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"namespace-test",
 			&pb.VolumeStats{
-				ReadOpsCount: 12345,
+				ReadOpsCount:  12345,
 				WriteOpsCount: 54321,
 			},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result": {"controllers":[{"name":"NvmeEmu0pf1","bdevs":[{"bdev_name":"Malloc0","read_ios":55,"completed_read_ios":55,"write_ios":33,"completed_write_ios":33,"flush_ios":0,"completed_flush_ios":0,"err_read_ios":0,"err_write_ios":0,"err_flush_ios":0},{"bdev_name":"Malloc1","read_ios":12345,"completed_read_ios":12345,"write_ios":54321,"completed_write_ios":54321,"flush_ios":0,"completed_flush_ios":0,"err_read_ios":0,"err_write_ios":0,"err_flush_ios":0}]}]}}`},
@@ -1659,7 +1721,12 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1670,7 +1737,12 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1711,7 +1783,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1720,7 +1792,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1729,7 +1801,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1738,7 +1810,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1747,7 +1819,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"namespace-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1772,7 +1844,12 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1783,7 +1860,12 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1821,7 +1903,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1830,7 +1912,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"controller-test",
 			nil,
 			[]string{""},
@@ -1839,7 +1921,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1848,7 +1930,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1857,7 +1939,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"controller-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1882,7 +1964,12 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -1893,7 +1980,12 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {
@@ -1931,7 +2023,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 		start   bool
 	}{
 		{
-			"valid request with invalid SPDK responce",
+			"valid request with invalid SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1940,7 +2032,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with empty SPDK responce",
+			"valid request with empty SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -1949,7 +2041,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with ID mismatch SPDK responce",
+			"valid request with ID mismatch SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1958,7 +2050,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with error code from SPDK responce",
+			"valid request with error code from SPDK response",
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1967,7 +2059,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 		},
 		{
-			"valid request with valid SPDK responce",
+			"valid request with valid SPDK response",
 			"subsystem-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1992,7 +2084,12 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer conn.Close()
+	defer func(conn *grpc.ClientConn) {
+		err := conn.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
 	// start SPDK mockup server
@@ -2003,7 +2100,12 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	if err != nil {
 		log.Fatal("listen error:", err)
 	}
-	defer ln.Close()
+	defer func(ln net.Listener) {
+		err := ln.Close()
+		if err != nil {
+			log.Fatal(err)
+		}
+	}(ln)
 
 	// run tests
 	for _, tt := range tests {

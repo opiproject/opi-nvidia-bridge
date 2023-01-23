@@ -13,7 +13,7 @@ services:
       - "50051:50051"
     networks:
       - opi
-    command: go run main.go -port=50051
+    command: /opi-nvidia-bridge -port=50051
     healthcheck:
       test: grpcurl -plaintext localhost:50051 list || exit 1
 

@@ -22,7 +22,7 @@ type server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
 }
 
-var pluginFrontendNvme server
+var PluginFrontendNvme server
 
 // ////////////////////////////////////////////////////////
 var subsystems = map[string]*pb.NVMeSubsystem{}

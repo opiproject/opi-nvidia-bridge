@@ -75,6 +75,28 @@ func spdkMockServer(l net.Listener, toSend []string) {
 	}
 }
 
+func startSpdkMockupServer() net.Listener {
+	// start SPDK mockup server
+	if err := os.RemoveAll(*rpcSock); err != nil {
+		log.Fatal(err)
+	}
+	ln, err := net.Listen("unix", *rpcSock)
+	if err != nil {
+		log.Fatal("listen error:", err)
+	}
+	return ln
+}
+
+func startGrpcMockupServer() (context.Context, *grpc.ClientConn) {
+	// start GRPC mockup Server
+	ctx := context.Background()
+	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
+	if err != nil {
+		log.Fatal(err)
+	}
+	return ctx, conn
+}
+
 func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	spec := &pb.NVMeSubsystemSpec{
 		Id:           &pc.ObjectKey{Value: "subsystem-test"},
@@ -159,12 +181,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -173,14 +190,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -238,12 +248,7 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -349,12 +354,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -363,14 +363,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -482,12 +475,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -496,14 +484,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -561,12 +542,7 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -687,12 +663,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -701,14 +672,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -766,12 +730,7 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -885,12 +844,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -899,14 +853,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1015,12 +962,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1029,14 +971,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1094,12 +1029,7 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1230,12 +1160,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1244,14 +1169,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1309,12 +1227,7 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1437,12 +1350,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1451,14 +1359,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1577,12 +1478,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1591,14 +1487,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1715,12 +1604,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1729,14 +1613,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1838,12 +1715,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1852,14 +1724,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1958,12 +1823,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -1972,14 +1832,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -2078,12 +1931,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 		},
 	}
 
-	// start GRPC mockup server
-	ctx := context.Background()
-	conn, err := grpc.DialContext(ctx, "", grpc.WithTransportCredentials(insecure.NewCredentials()), grpc.WithContextDialer(dialer()))
-	if err != nil {
-		log.Fatal(err)
-	}
+	ctx, conn := startGrpcMockupServer()
 	defer func(conn *grpc.ClientConn) {
 		err := conn.Close()
 		if err != nil {
@@ -2092,14 +1940,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	// start SPDK mockup server
-	if err := os.RemoveAll(*rpcSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *rpcSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
+	ln := startSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {

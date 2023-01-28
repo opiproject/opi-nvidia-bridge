@@ -26,7 +26,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@7932f6210d7d60bffb2f9bcfa60e9e2c4800d96d
+      - uses: docker/setup-buildx-action@71320d2e179bce901c4801d64d5b5187bd6e1946
       
       - name: Log into registry ${{ env.REGISTRY }}
         if: github.event_name != 'pull_request'
@@ -58,7 +58,7 @@ jobs:
     steps:
       - uses: actions/checkout@v3
       - uses: docker/setup-qemu-action@v2
-      - uses: docker/setup-buildx-action@7932f6210d7d60bffb2f9bcfa60e9e2c4800d96d
+      - uses: docker/setup-buildx-action@71320d2e179bce901c4801d64d5b5187bd6e1946
 
       - name: Start containers
         run: docker-compose up --build --force-recreate --detach opi-test

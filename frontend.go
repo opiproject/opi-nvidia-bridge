@@ -2,6 +2,7 @@
 // Copyright (c) 2022 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
+// main is the main package of the application
 package main
 
 import (
@@ -22,9 +23,9 @@ type server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
 }
 
+// PluginFrontendNvme is the server that we export to load dynamically at runtime
 var PluginFrontendNvme server
 
-// ////////////////////////////////////////////////////////
 var subsystems = map[string]*pb.NVMeSubsystem{}
 
 func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {

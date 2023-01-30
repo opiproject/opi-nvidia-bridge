@@ -4,22 +4,27 @@
 
 package main
 
+// NvdaSubsystemNvmeCreateParams represents a Nvidia subsystem create request
 type NvdaSubsystemNvmeCreateParams struct {
 	Nqn          string `json:"nqn"`
 	SerialNumber string `json:"serial_number"`
 	ModelNumber  string `json:"model_number"`
 }
 
+// NvdaSubsystemNvmeCreateResult represents a Nvidia subsystem create result
 type NvdaSubsystemNvmeCreateResult bool
 
+// NvdaSubsystemNvmeDeleteParams represents a Nvidia subsystem delete request
 type NvdaSubsystemNvmeDeleteParams struct {
 	Nqn string `json:"nqn"`
 }
 
+// NvdaSubsystemNvmeDeleteResult represents a Nvidia subsystem delete result
 type NvdaSubsystemNvmeDeleteResult bool
 
 // NvdaSubsystemNvmeListParams is empty
 
+// NvdaSubsystemNvmeListResult represents a Nvidia subsystem list request
 type NvdaSubsystemNvmeListResult struct {
 	Nqn          string `json:"nqn"`
 	SerialNumber string `json:"serial_number"`
@@ -32,6 +37,7 @@ type NvdaSubsystemNvmeListResult struct {
 	} `json:"controllers"`
 }
 
+// NvdaControllerNvmeCreateParams represents a Nvidia Controller create request
 type NvdaControllerNvmeCreateParams struct {
 	Nqn              string `json:"nqn"`
 	EmulationManager string `json:"emulation_manager"`
@@ -41,20 +47,24 @@ type NvdaControllerNvmeCreateParams struct {
 	MaxNamespaces    int    `json:"max_namespaces,omitempty"`
 }
 
+// NvdaControllerNvmeCreateResult represents a Nvidia Controller create result
 type NvdaControllerNvmeCreateResult struct {
 	Name   string `json:"name"`
 	Cntlid int    `json:"cntlid"`
 }
 
+// NvdaControllerNvmeDeleteParams represents a Nvidia Controller delete request
 type NvdaControllerNvmeDeleteParams struct {
 	Subnqn string `json:"subnqn"`
 	Cntlid int    `json:"cntlid"`
 }
 
+// NvdaControllerNvmeDeleteResult represents a Nvidia Controller delete result
 type NvdaControllerNvmeDeleteResult bool
 
 // NvdaControllerNvmeListParams is empty
 
+// NvdaControllerNvmeListResult represents a Nvidia Controller list request
 type NvdaControllerNvmeListResult struct {
 	Subnqn           string `json:"subnqn"`
 	Cntlid           int    `json:"cntlid"`
@@ -65,6 +75,7 @@ type NvdaControllerNvmeListResult struct {
 	PciBdf           string `json:"pci_bdf"`
 }
 
+// NvdaControllerNvmeNamespaceAttachParams represents a Nvidia controller attach namespaces request
 type NvdaControllerNvmeNamespaceAttachParams struct {
 	BdevType string `json:"bdev_type"`
 	Bdev     string `json:"bdev"`
@@ -76,21 +87,26 @@ type NvdaControllerNvmeNamespaceAttachParams struct {
 	Eui64    string `json:"eui64"`
 }
 
+// NvdaControllerNvmeNamespaceAttachResult represents a Nvidia controller attach namespaces result
 type NvdaControllerNvmeNamespaceAttachResult bool
 
+// NvdaControllerNvmeNamespaceDetachParams represents a Nvidia controller detach namespaces request
 type NvdaControllerNvmeNamespaceDetachParams struct {
 	Nsid   int    `json:"nsid"`
 	Subnqn string `json:"subnqn"`
 	Cntlid int    `json:"cntlid"`
 }
 
+// NvdaControllerNvmeNamespaceDetachResult represents a Nvidia controller detach namespaces result
 type NvdaControllerNvmeNamespaceDetachResult bool
 
+// NvdaControllerNvmeNamespaceListParams represents a Nvidia controller list of namespaces request
 type NvdaControllerNvmeNamespaceListParams struct {
 	Subnqn string `json:"subnqn"`
 	Cntlid int    `json:"cntlid"`
 }
 
+// NvdaControllerNvmeNamespaceListResult represents a Nvidia controller list of namespaces result
 type NvdaControllerNvmeNamespaceListResult struct {
 	Name       string `json:"name"`
 	Cntlid     int    `json:"cntlid"`
@@ -103,6 +119,7 @@ type NvdaControllerNvmeNamespaceListResult struct {
 	} `json:"Namespaces"`
 }
 
+// NvdaControllerNvmeStatsResult represents a Nvidia controller get stats result
 type NvdaControllerNvmeStatsResult struct {
 	Controllers []struct {
 		Name  string `json:"name"`
@@ -121,6 +138,7 @@ type NvdaControllerNvmeStatsResult struct {
 	} `json:"controllers"`
 }
 
+// GetVersionResult represents a Nvidia get version result
 type GetVersionResult struct {
 	Version string `json:"version"`
 	Fields  struct {

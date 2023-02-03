@@ -54,6 +54,14 @@ $ docker run --rm -it -v /var/tmp/:/var/tmp/ -p 50051:50051 ghcr.io/opiproject/o
 
 on X86 management VM run
 
+full test suite
+
+```bash
+docker run --rm -it --network=host ghcr.io/opiproject/opi-storage-client:main -addr "10.10.10.10:50051"
+```
+
+or manually
+
 ```bash
 docker run --network=host --rm -it namely/grpc-cli ls   --json_input --json_output 10.10.10.10:50051 -l
 docker run --network=host --rm -it namely/grpc-cli call --json_input --json_output 10.10.10.10:50051 CreateNVMeSubsystem "{nv_me_subsystem : {spec : {id : {value : 'subsystem2'}, nqn: 'nqn.2022-09.io.spdk:opitest2', serial_number: 'myserial2', model_number: 'mymodel2', max_namespaces: 11} } }"

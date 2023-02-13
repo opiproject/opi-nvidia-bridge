@@ -11,9 +11,10 @@ COPY go.sum ./
 RUN go mod download
 
 # build an app
-COPY *.go ./
-RUN go build -v -buildmode=plugin  -o /opi-nvidia-bridge.so ./frontend.go ./spdk.go ./jsonrpc.go \
- && go build -v -buildmode=default -o /opi-nvidia-bridge    ./main.go
+COPY cmd/ cmd/
+COPY pkg/ pkg/
+RUN go build -v -buildmode=plugin  -o /opi-nvidia-bridge.so ./pkg/... \
+ && go build -v -buildmode=default -o /opi-nvidia-bridge    ./cmd/...
 
 # second stage to reduce image size
 FROM alpine:3.17

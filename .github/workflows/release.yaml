@@ -6,6 +6,6 @@ on:
     types: [published]
 
 jobs:
-  release-docker:
+  call:
     uses: ./.github/workflows/docker-publish.yml
     secrets: inherit

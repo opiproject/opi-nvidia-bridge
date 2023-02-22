@@ -20,27 +20,16 @@ See [CONTRIBUTING](https://github.com/opiproject/opi/blob/main/CONTRIBUTING.md) 
 
 ## Getting started
 
+build like this:
+
 ```bash
-go build -v -buildmode=plugin -o /opi-nvidia-bridge.so ./...
+go build -v -o /opi-nvidia-bridge ./cmd/...
 ```
 
- in main app:
+import like this:
 
 ```go
-package main
-import (
-    "plugin"
-    pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
-)
-func main() {
-    plug, err := plugin.Open("/opi-nvidia-bridge.so")
-    feNvmeSymbol, err := plug.Lookup("PluginFrontendNvme")
-    var feNvme pb.FrontendNvmeServiceServer
-    feNvme, ok := feNvmeSymbol.(pb.FrontendNvmeServiceServer)
-    s := grpc.NewServer()
-    pb.RegisterFrontendNvmeServiceServer(s, feNvme)
-    reflection.Register(s)
-}
+import "github.com/opiproject/opi-nvidia-bridge/pkg/frontend"
 ```
 
 ## Using docker
@@ -64,6 +53,7 @@ opi_api.storage.v1.AioControllerService
 opi_api.storage.v1.FrontendNvmeService
 opi_api.storage.v1.FrontendVirtioBlkService
 opi_api.storage.v1.FrontendVirtioScsiService
+opi_api.inventory.v1.InventorySvc;
 opi_api.storage.v1.MiddleendService
 opi_api.storage.v1.NVMfRemoteControllerService
 opi_api.storage.v1.NullDebugService

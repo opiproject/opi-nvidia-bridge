@@ -2,7 +2,8 @@
 // Copyright (c) 2022 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
-package main
+// Package frontend implememnts the FrontEnd APIs (host facing) of the storage Server
+package frontend
 
 import (
 	"context"
@@ -1285,7 +1286,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type main.NvdaControllerNvmeNamespaceListResult"),
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeNamespaceListResult"),
 			true,
 		},
 		{
@@ -1421,7 +1422,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type main.NvdaControllerNvmeNamespaceListResult"),
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeNamespaceListResult"),
 			true,
 		},
 		{
@@ -1552,7 +1553,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go struct field .result of type main.NvdaControllerNvmeStatsResult"),
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeStatsResult"),
 			true,
 		},
 		{

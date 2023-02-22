@@ -12,6 +12,10 @@ import (
 	"net"
 	"plugin"
 
+	"github.com/opiproject/opi-spdk-bridge/pkg/backend"
+	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
+	"github.com/opiproject/opi-spdk-bridge/pkg/middleend"
+
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
@@ -48,6 +52,12 @@ func main() {
 	s := grpc.NewServer()
 
 	pb.RegisterFrontendNvmeServiceServer(s, feNvme)
+	pb.RegisterFrontendVirtioBlkServiceServer(s, &frontend.Server{})
+	pb.RegisterFrontendVirtioScsiServiceServer(s, &frontend.Server{})
+	pb.RegisterNVMfRemoteControllerServiceServer(s, &backend.Server{})
+	pb.RegisterNullDebugServiceServer(s, &backend.Server{})
+	pb.RegisterAioControllerServiceServer(s, &backend.Server{})
+	pb.RegisterMiddleendServiceServer(s, &middleend.Server{})
 	reflection.Register(s)
 
 	log.Printf("server listening at %v", lis.Addr())

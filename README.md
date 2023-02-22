@@ -1,4 +1,4 @@
-# OPI storage gRPC to nvidia SPDK json-rpc bridge
+# OPI gRPC to Nvidia SDK bridge third party repo
 
 [![Linters](https://github.com/opiproject/opi-nvidia-bridge/actions/workflows/linters.yml/badge.svg)](https://github.com/opiproject/opi-nvidia-bridge/actions/workflows/linters.yml)
 [![tests](https://github.com/opiproject/opi-nvidia-bridge/actions/workflows/go.yml/badge.svg)](https://github.com/opiproject/opi-nvidia-bridge/actions/workflows/go.yml)
@@ -10,7 +10,7 @@
 [![Pulls](https://img.shields.io/docker/pulls/opiproject/opi-nvidia-bridge.svg?logo=docker&style=flat&label=Pulls)](https://hub.docker.com/r/opiproject/opi-nvidia-bridge)
 [![Last Release](https://img.shields.io/github/v/release/opiproject/opi-nvidia-bridge?label=Latest&style=flat-square&logo=go)](https://github.com/opiproject/opi-nvidia-bridge/releases)
 
-This is a nvidia plugin to OPI storage APIs based on SPDK.
+This is a Nvidia app (bridge) to OPI APIs for storage, inventory, ipsec and networking (future).
 
 ## I Want To Contribute
 

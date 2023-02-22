@@ -47,13 +47,14 @@ on X86 management VM run
 reflection
 
 ```bash
-$ docker run --network=host --rm -it namely/grpc-cli ls --json_input --json_output 10.10.10.10:50051 -l
+$ docker run --network=host --rm -it namely/grpc-cli ls --json_input --json_output localhost:50051
 grpc.reflection.v1alpha.ServerReflection
+opi_api.inventory.v1.InventorySvc
+opi_api.security.v1.IPsec
 opi_api.storage.v1.AioControllerService
 opi_api.storage.v1.FrontendNvmeService
 opi_api.storage.v1.FrontendVirtioBlkService
 opi_api.storage.v1.FrontendVirtioScsiService
-opi_api.inventory.v1.InventorySvc;
 opi_api.storage.v1.MiddleendService
 opi_api.storage.v1.NVMfRemoteControllerService
 opi_api.storage.v1.NullDebugService

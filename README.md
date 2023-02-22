@@ -63,7 +63,9 @@ opi_api.storage.v1.NullDebugService
 full test suite
 
 ```bash
+docker run --rm -it --network=host docker.io/opiproject/godpu:main get --addr="10.10.10.10:50051"
 docker run --rm -it --network=host docker.io/opiproject/godpu:main storagetest --addr="10.10.10.10:50051"
+docker run --rm -it --network=host docker.io/opiproject/godpu:main test --addr=10.10.10.10:50151 --pingaddr=8.8.8.1"
 ```
 
 or manually

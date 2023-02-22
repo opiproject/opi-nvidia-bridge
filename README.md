@@ -55,10 +55,24 @@ $ docker run --rm -it -v /var/tmp/:/var/tmp/ -p 50051:50051 ghcr.io/opiproject/o
 
 on X86 management VM run
 
+reflection
+
+```bash
+$ docker run --network=host --rm -it namely/grpc-cli ls --json_input --json_output 10.10.10.10:50051 -l
+grpc.reflection.v1alpha.ServerReflection
+opi_api.storage.v1.AioControllerService
+opi_api.storage.v1.FrontendNvmeService
+opi_api.storage.v1.FrontendVirtioBlkService
+opi_api.storage.v1.FrontendVirtioScsiService
+opi_api.storage.v1.MiddleendService
+opi_api.storage.v1.NVMfRemoteControllerService
+opi_api.storage.v1.NullDebugService
+```
+
 full test suite
 
 ```bash
-docker run --rm -it --network=host ghcr.io/opiproject/opi-storage-client:main -addr "10.10.10.10:50051"
+docker run --rm -it --network=host docker.io/opiproject/godpu:main storagetest --addr="10.10.10.10:50051"
 ```
 
 or manually

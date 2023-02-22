@@ -13,22 +13,24 @@ import (
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
+	"github.com/opiproject/opi-spdk-bridge/pkg/server"
+
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-type server struct {
+type exServer struct {
 	pb.UnimplementedFrontendNvmeServiceServer
 }
 
 // PluginFrontendNvme is the server that we export to load dynamically at runtime
-var PluginFrontendNvme server
+var PluginFrontendNvme exServer
 
 var subsystems = map[string]*pb.NVMeSubsystem{}
 
-func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
+func (s *exServer) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
 	log.Printf("CreateNVMeSubsystem: Received from client: %v", in)
 	params := NvdaSubsystemNvmeCreateParams{
 		Nqn:          in.NvMeSubsystem.Spec.Nqn,
@@ -36,7 +38,7 @@ func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 		ModelNumber:  in.NvMeSubsystem.Spec.ModelNumber,
 	}
 	var result NvdaSubsystemNvmeCreateResult
-	err := call("subsystem_nvme_create", &params, &result)
+	err := server.Call("subsystem_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -49,7 +51,7 @@ func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	var ver GetVersionResult
-	err = call("spdk_get_version", nil, &ver)
+	err = server.Call("spdk_get_version", nil, &ver)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -65,7 +67,7 @@ func (s *server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 	return response, nil
 }
 
-func (s *server) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsystemRequest) (*emptypb.Empty, error) {
+func (s *exServer) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsystemRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteNVMeSubsystem: Received from client: %v", in)
 	subsys, ok := subsystems[in.Name]
 	if !ok {
@@ -77,7 +79,7 @@ func (s *server) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsy
 		Nqn: subsys.Spec.Nqn,
 	}
 	var result NvdaSubsystemNvmeDeleteResult
-	err := call("subsystem_nvme_delete", &params, &result)
+	err := server.Call("subsystem_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -92,15 +94,15 @@ func (s *server) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsy
 	return &emptypb.Empty{}, nil
 }
 
-func (s *server) UpdateNVMeSubsystem(ctx context.Context, in *pb.UpdateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
+func (s *exServer) UpdateNVMeSubsystem(ctx context.Context, in *pb.UpdateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
 	log.Printf("UpdateNVMeSubsystem: Received from client: %v", in)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNVMeSubsystem method is not implemented")
 }
 
-func (s *server) ListNVMeSubsystems(ctx context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
+func (s *exServer) ListNVMeSubsystems(ctx context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
 	log.Printf("ListNVMeSubsystems: Received from client: %v", in)
 	var result []NvdaSubsystemNvmeListResult
-	err := call("subsystem_nvme_list", nil, &result)
+	err := server.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -114,7 +116,7 @@ func (s *server) ListNVMeSubsystems(ctx context.Context, in *pb.ListNVMeSubsyste
 	return &pb.ListNVMeSubsystemsResponse{NvMeSubsystems: Blobarray}, nil
 }
 
-func (s *server) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
+func (s *exServer) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
 	log.Printf("GetNVMeSubsystem: Received from client: %v", in)
 	subsys, ok := subsystems[in.Name]
 	if !ok {
@@ -123,7 +125,7 @@ func (s *server) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystemRe
 		return nil, err
 	}
 	var result []NvdaSubsystemNvmeListResult
-	err := call("subsystem_nvme_list", nil, &result)
+	err := server.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -140,7 +142,7 @@ func (s *server) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystemRe
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-func (s *server) NVMeSubsystemStats(ctx context.Context, in *pb.NVMeSubsystemStatsRequest) (*pb.NVMeSubsystemStatsResponse, error) {
+func (s *exServer) NVMeSubsystemStats(ctx context.Context, in *pb.NVMeSubsystemStatsRequest) (*pb.NVMeSubsystemStatsResponse, error) {
 	log.Printf("NVMeSubsystemStats: Received from client: %v", in)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNVMeSubsystem method is not implemented")
 }
@@ -148,7 +150,7 @@ func (s *server) NVMeSubsystemStats(ctx context.Context, in *pb.NVMeSubsystemSta
 // ////////////////////////////////////////////////////////
 var controllers = map[string]*pb.NVMeController{}
 
-func (s *server) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeControllerRequest) (*pb.NVMeController, error) {
+func (s *exServer) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeControllerRequest) (*pb.NVMeController, error) {
 	log.Printf("CreateNVMeController: Received from client: %v", in)
 	subsys, ok := subsystems[in.NvMeController.Spec.SubsystemId.Value]
 	if !ok {
@@ -166,7 +168,7 @@ func (s *server) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCont
 		// NrIoQueues:       int(in.NvMeController.Spec.MaxNcq),
 	}
 	var result NvdaControllerNvmeCreateResult
-	err := call("controller_nvme_create", &params, &result)
+	err := server.Call("controller_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -189,7 +191,7 @@ func (s *server) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCont
 	return response, nil
 }
 
-func (s *server) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeControllerRequest) (*emptypb.Empty, error) {
+func (s *exServer) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeControllerRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteNVMeController: Received from client: %v", in)
 	controller, ok := controllers[in.Name]
 	if !ok {
@@ -207,7 +209,7 @@ func (s *server) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeCont
 		Cntlid: int(controller.Spec.NvmeControllerId),
 	}
 	var result NvdaControllerNvmeDeleteResult
-	err := call("controller_nvme_delete", &params, &result)
+	err := server.Call("controller_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -222,12 +224,12 @@ func (s *server) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeCont
 	return &emptypb.Empty{}, nil
 }
 
-func (s *server) UpdateNVMeController(ctx context.Context, in *pb.UpdateNVMeControllerRequest) (*pb.NVMeController, error) {
+func (s *exServer) UpdateNVMeController(ctx context.Context, in *pb.UpdateNVMeControllerRequest) (*pb.NVMeController, error) {
 	log.Printf("UpdateNVMeController: Received from client: %v", in)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNVMeController method is not implemented")
 }
 
-func (s *server) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControllersRequest) (*pb.ListNVMeControllersResponse, error) {
+func (s *exServer) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControllersRequest) (*pb.ListNVMeControllersResponse, error) {
 	log.Printf("ListNVMeControllers: Received from client: %v", in)
 	subsys, ok := subsystems[in.Parent]
 	if !ok {
@@ -236,7 +238,7 @@ func (s *server) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControl
 		return nil, err
 	}
 	var result []NvdaControllerNvmeListResult
-	err := call("controller_list", nil, &result)
+	err := server.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -252,7 +254,7 @@ func (s *server) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControl
 	return &pb.ListNVMeControllersResponse{NvMeControllers: Blobarray}, nil
 }
 
-func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeControllerRequest) (*pb.NVMeController, error) {
+func (s *exServer) GetNVMeController(ctx context.Context, in *pb.GetNVMeControllerRequest) (*pb.NVMeController, error) {
 	log.Printf("GetNVMeController: Received from client: %v", in)
 	controller, ok := controllers[in.Name]
 	if !ok {
@@ -261,7 +263,7 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 		return nil, err
 	}
 	var result []NvdaControllerNvmeListResult
-	err := call("controller_list", nil, &result)
+	err := server.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -278,7 +280,7 @@ func (s *server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-func (s *server) NVMeControllerStats(ctx context.Context, in *pb.NVMeControllerStatsRequest) (*pb.NVMeControllerStatsResponse, error) {
+func (s *exServer) NVMeControllerStats(ctx context.Context, in *pb.NVMeControllerStatsRequest) (*pb.NVMeControllerStatsResponse, error) {
 	log.Printf("NVMeControllerStats: Received from client: %v", in)
 	return nil, status.Errorf(codes.Unimplemented, "NVMeControllerStats method is not implemented")
 }
@@ -286,7 +288,7 @@ func (s *server) NVMeControllerStats(ctx context.Context, in *pb.NVMeControllerS
 // ////////////////////////////////////////////////////////
 var namespaces = map[string]*pb.NVMeNamespace{}
 
-func (s *server) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
+func (s *exServer) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
 	log.Printf("CreateNVMeNamespace: Received from client: %v", in)
 	subsys, ok := subsystems[in.NvMeNamespace.Spec.SubsystemId.Value]
 	if !ok {
@@ -306,7 +308,7 @@ func (s *server) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNames
 		Eui64:    strconv.FormatInt(in.NvMeNamespace.Spec.Eui64, 10),
 	}
 	var result NvdaControllerNvmeNamespaceAttachResult
-	err := call("controller_nvme_namespace_attach", &params, &result)
+	err := server.Call("controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -328,7 +330,7 @@ func (s *server) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNames
 	return response, nil
 }
 
-func (s *server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNamespaceRequest) (*emptypb.Empty, error) {
+func (s *exServer) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNamespaceRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteNVMeNamespace: Received from client: %v", in)
 	namespace, ok := namespaces[in.Name]
 	if !ok {
@@ -350,7 +352,7 @@ func (s *server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNames
 		Cntlid: 0,
 	}
 	var result NvdaControllerNvmeNamespaceDetachResult
-	err := call("controller_nvme_namespace_detach", &params, &result)
+	err := server.Call("controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -365,12 +367,12 @@ func (s *server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNames
 	return &emptypb.Empty{}, nil
 }
 
-func (s *server) UpdateNVMeNamespace(ctx context.Context, in *pb.UpdateNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
+func (s *exServer) UpdateNVMeNamespace(ctx context.Context, in *pb.UpdateNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
 	log.Printf("UpdateNVMeNamespace: Received from client: %v", in)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNVMeNamespace method is not implemented")
 }
 
-func (s *server) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamespacesRequest) (*pb.ListNVMeNamespacesResponse, error) {
+func (s *exServer) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamespacesRequest) (*pb.ListNVMeNamespacesResponse, error) {
 	log.Printf("ListNVMeNamespaces: Received from client: %v", in)
 	subsys, ok := subsystems[in.Parent]
 	if !ok {
@@ -384,7 +386,7 @@ func (s *server) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamespac
 		Cntlid: 0,
 	}
 	var result NvdaControllerNvmeNamespaceListResult
-	err := call("controller_nvme_namespace_list", &params, &result)
+	err := server.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -398,7 +400,7 @@ func (s *server) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamespac
 	return &pb.ListNVMeNamespacesResponse{NvMeNamespaces: Blobarray}, nil
 }
 
-func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
+func (s *exServer) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
 	log.Printf("GetNVMeNamespace: Received from client: %v", in)
 	namespace, ok := namespaces[in.Name]
 	if !ok {
@@ -418,7 +420,7 @@ func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 		Cntlid: 0,
 	}
 	var result NvdaControllerNvmeNamespaceListResult
-	err := call("controller_nvme_namespace_list", &params, &result)
+	err := server.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -435,7 +437,7 @@ func (s *server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-func (s *server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceStatsRequest) (*pb.NVMeNamespaceStatsResponse, error) {
+func (s *exServer) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceStatsRequest) (*pb.NVMeNamespaceStatsResponse, error) {
 	log.Printf("NVMeNamespaceStats: Received from client: %v", in)
 	namespace, ok := namespaces[in.NamespaceId.Value]
 	if !ok {
@@ -444,7 +446,7 @@ func (s *server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceSta
 		return nil, err
 	}
 	var result NvdaControllerNvmeStatsResult
-	err := call("controller_nvme_get_iostat", nil, &result)
+	err := server.Call("controller_nvme_get_iostat", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err

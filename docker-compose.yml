@@ -18,7 +18,7 @@ services:
       test: grpcurl -plaintext localhost:50051 list || exit 1
 
   opi-test:
-    image: namely/grpc-cli
+    image: docker.io/namely/grpc-cli
     networks:
       - opi
     depends_on:
@@ -27,13 +27,13 @@ services:
     command: ls opi-nvidia-server:50051 opi_api.storage.v1.FrontendNvmeService -l
 
   opi-client:
-    image: "ghcr.io/opiproject/opi-storage-client:main"
+    image: docker.io/opiproject/godpu:main
     networks:
       - opi
     depends_on:
       opi-nvidia-server:
         condition: service_healthy
-    command: /opi-storage-client -addr=opi-nvidia-server:50051
+    command: storagetest --addr=opi-nvidia-server:50051
 
 networks:
   opi:

@@ -16,8 +16,10 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/backend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/middleend"
+	"github.com/opiproject/opi-strongswan-bridge/pkg/ipsec"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
+	ps "github.com/opiproject/opi-api/security/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 
 	"google.golang.org/grpc"
@@ -45,6 +47,7 @@ func main() {
 	pb.RegisterAioControllerServiceServer(s, &backend.Server{})
 	pb.RegisterMiddleendServiceServer(s, &middleend.Server{})
 	pc.RegisterInventorySvcServer(s, &inventory.Server{})
+	ps.RegisterIPsecServer(s, &ipsec.Server{})
 	reflection.Register(s)
 
 	log.Printf("server listening at %v", lis.Addr())

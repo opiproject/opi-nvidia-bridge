@@ -12,7 +12,6 @@ import (
 	"net"
 	"os"
 	"reflect"
-	"strings"
 	"testing"
 
 	"google.golang.org/grpc"
@@ -40,40 +39,6 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 
 	return func(context.Context, string) (net.Conn, error) {
 		return listener.Dial()
-	}
-}
-
-func spdkMockServer(l net.Listener, toSend []string) {
-	for _, spdk := range toSend {
-		fd, err := l.Accept()
-		if err != nil {
-			log.Fatal("accept error:", err)
-		}
-		log.Printf("SPDK mockup server: client connected [%s]", fd.RemoteAddr().Network())
-		log.Printf("SPDK ID [%d]", server.RPCID)
-
-		buf := make([]byte, 512)
-		nr, err := fd.Read(buf)
-		if err != nil {
-			return
-		}
-
-		data := buf[0:nr]
-		if strings.Contains(spdk, "%") {
-			spdk = fmt.Sprintf(spdk, server.RPCID)
-		}
-
-		log.Printf("SPDK mockup server: got : %s", string(data))
-		log.Printf("SPDK mockup server: snd : %s", spdk)
-
-		_, err = fd.Write([]byte(spdk))
-		if err != nil {
-			log.Fatal("Write: ", err)
-		}
-		err = fd.(*net.UnixConn).CloseWrite()
-		if err != nil {
-			log.Fatal(err)
-		}
 	}
 }
 
@@ -204,7 +169,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.CreateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
 			response, err := client.CreateNVMeSubsystem(ctx, request)
@@ -377,7 +342,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.ListNVMeSubsystemsRequest{}
 			response, err := client.ListNVMeSubsystems(ctx, request)
@@ -498,7 +463,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.GetNVMeSubsystemRequest{Name: tt.in}
 			response, err := client.GetNVMeSubsystem(ctx, request)
@@ -686,7 +651,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.CreateNVMeControllerRequest{NvMeController: tt.in}
 			response, err := client.CreateNVMeController(ctx, request)
@@ -867,7 +832,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.ListNVMeControllersRequest{Parent: tt.in}
 			response, err := client.ListNVMeControllers(ctx, request)
@@ -985,7 +950,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.GetNVMeControllerRequest{Name: tt.in}
 			response, err := client.GetNVMeController(ctx, request)
@@ -1183,7 +1148,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.CreateNVMeNamespaceRequest{NvMeNamespace: tt.in}
 			response, err := client.CreateNVMeNamespace(ctx, request)
@@ -1373,7 +1338,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.ListNVMeNamespacesRequest{Parent: tt.in}
 			response, err := client.ListNVMeNamespaces(ctx, request)
@@ -1501,7 +1466,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.GetNVMeNamespaceRequest{Name: tt.in}
 			response, err := client.GetNVMeNamespace(ctx, request)
@@ -1627,7 +1592,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.NVMeNamespaceStatsRequest{NamespaceId: &pc.ObjectKey{Value: tt.in}}
 			response, err := client.NVMeNamespaceStats(ctx, request)
@@ -1738,7 +1703,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.DeleteNVMeNamespaceRequest{Name: tt.in}
 			response, err := client.DeleteNVMeNamespace(ctx, request)
@@ -1846,7 +1811,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.DeleteNVMeControllerRequest{Name: tt.in}
 			response, err := client.DeleteNVMeController(ctx, request)
@@ -1954,7 +1919,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			if tt.start {
-				go spdkMockServer(ln, tt.spdk)
+				go server.SpdkMockServer(ln, tt.spdk)
 			}
 			request := &pb.DeleteNVMeSubsystemRequest{Name: tt.in}
 			response, err := client.DeleteNVMeSubsystem(ctx, request)

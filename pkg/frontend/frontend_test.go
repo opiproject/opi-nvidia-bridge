@@ -10,7 +10,6 @@ import (
 	"fmt"
 	"log"
 	"net"
-	"os"
 	"reflect"
 	"testing"
 
@@ -40,18 +39,6 @@ func dialer() func(context.Context, string) (net.Conn, error) {
 	return func(context.Context, string) (net.Conn, error) {
 		return listener.Dial()
 	}
-}
-
-func startSpdkMockupServer() net.Listener {
-	// start SPDK mockup server
-	if err := os.RemoveAll(*server.RPCSock); err != nil {
-		log.Fatal(err)
-	}
-	ln, err := net.Listen("unix", *server.RPCSock)
-	if err != nil {
-		log.Fatal("listen error:", err)
-	}
-	return ln
 }
 
 func startGrpcMockupServer() (context.Context, *grpc.ClientConn) {
@@ -157,7 +144,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -330,7 +317,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -451,7 +438,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -639,7 +626,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -820,7 +807,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -938,7 +925,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1136,7 +1123,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1326,7 +1313,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1454,7 +1441,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1580,7 +1567,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1691,7 +1678,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1799,7 +1786,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {
@@ -1907,7 +1894,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	}(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
-	ln := startSpdkMockupServer()
+	ln := server.StartSpdkMockupServer()
 	defer func(ln net.Listener) {
 		err := ln.Close()
 		if err != nil {

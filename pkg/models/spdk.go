@@ -138,14 +138,3 @@ type NvdaControllerNvmeStatsResult struct {
 		} `json:"bdevs"`
 	} `json:"controllers"`
 }
-
-// GetVersionResult represents a Nvidia get version result
-type GetVersionResult struct {
-	Version string `json:"version"`
-	Fields  struct {
-		Major  int    `json:"major"`
-		Minor  int    `json:"minor"`
-		Patch  int    `json:"patch"`
-		Suffix string `json:"suffix"`
-	} `json:"fields"`
-}

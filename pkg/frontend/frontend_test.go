@@ -178,6 +178,7 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 		name    string
 		in      *pb.NVMeSubsystem
 		out     *pb.NVMeSubsystem
+		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
@@ -186,6 +187,7 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 			"unimplemented method",
 			&pb.NVMeSubsystem{},
 			nil,
+			[]string{""},
 			codes.Unimplemented,
 			fmt.Sprintf("%v method is not implemented", "UpdateNVMeSubsystem"),
 			false,
@@ -196,9 +198,15 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 	defer server.CloseGrpcConnection(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	ln := server.StartSpdkMockupServer()
+	defer server.CloseListener(ln)
+
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go server.SpdkMockServer(ln, tt.spdk)
+			}
 			request := &pb.UpdateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
 			response, err := client.UpdateNVMeSubsystem(ctx, request)
 			if response != nil {
@@ -447,6 +455,7 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 		name    string
 		in      string
 		out     *pb.NVMeSubsystemStatsResponse
+		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
@@ -455,6 +464,7 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 			"unimplemented method",
 			"subsystem-test",
 			nil,
+			[]string{""},
 			codes.Unimplemented,
 			fmt.Sprintf("%v method is not implemented", "UpdateNVMeSubsystem"),
 			false,
@@ -465,9 +475,15 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 	defer server.CloseGrpcConnection(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	ln := server.StartSpdkMockupServer()
+	defer server.CloseListener(ln)
+
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go server.SpdkMockServer(ln, tt.spdk)
+			}
 			request := &pb.NVMeSubsystemStatsRequest{SubsystemId: &pc.ObjectKey{Value: tt.in}}
 			response, err := client.NVMeSubsystemStats(ctx, request)
 			if response != nil {
@@ -620,6 +636,7 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 		name    string
 		in      *pb.NVMeController
 		out     *pb.NVMeController
+		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
@@ -628,6 +645,7 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 			"unimplemented method",
 			&pb.NVMeController{},
 			nil,
+			[]string{""},
 			codes.Unimplemented,
 			fmt.Sprintf("%v method is not implemented", "UpdateNVMeController"),
 			false,
@@ -638,9 +656,15 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 	defer server.CloseGrpcConnection(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	ln := server.StartSpdkMockupServer()
+	defer server.CloseListener(ln)
+
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go server.SpdkMockServer(ln, tt.spdk)
+			}
 			request := &pb.UpdateNVMeControllerRequest{NvMeController: tt.in}
 			response, err := client.UpdateNVMeController(ctx, request)
 			if response != nil {
@@ -894,6 +918,7 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 		name    string
 		in      string
 		out     *pb.NVMeControllerStatsResponse
+		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
@@ -902,6 +927,7 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 			"unimplemented method",
 			"controller-test",
 			nil,
+			[]string{""},
 			codes.Unimplemented,
 			fmt.Sprintf("%v method is not implemented", "NVMeControllerStats"),
 			false,
@@ -912,9 +938,15 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 	defer server.CloseGrpcConnection(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	ln := server.StartSpdkMockupServer()
+	defer server.CloseListener(ln)
+
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go server.SpdkMockServer(ln, tt.spdk)
+			}
 			request := &pb.NVMeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
 			response, err := client.NVMeControllerStats(ctx, request)
 			if response != nil {
@@ -1077,6 +1109,7 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 		name    string
 		in      *pb.NVMeNamespace
 		out     *pb.NVMeNamespace
+		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
@@ -1085,6 +1118,7 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 			"unimplemented method",
 			&pb.NVMeNamespace{},
 			nil,
+			[]string{""},
 			codes.Unimplemented,
 			fmt.Sprintf("%v method is not implemented", "UpdateNVMeNamespace"),
 			false,
@@ -1095,9 +1129,15 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 	defer server.CloseGrpcConnection(conn)
 	client := pb.NewFrontendNvmeServiceClient(conn)
 
+	ln := server.StartSpdkMockupServer()
+	defer server.CloseListener(ln)
+
 	// run tests
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
+			if tt.start {
+				go server.SpdkMockServer(ln, tt.spdk)
+			}
 			request := &pb.UpdateNVMeNamespaceRequest{NvMeNamespace: tt.in}
 			response, err := client.UpdateNVMeNamespace(ctx, request)
 			if response != nil {

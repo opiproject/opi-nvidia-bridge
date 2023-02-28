@@ -13,6 +13,7 @@ import (
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
+	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/ulule/deepcopier"
@@ -32,12 +33,12 @@ var subsystems = map[string]*pb.NVMeSubsystem{}
 
 func (s *exServer) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
 	log.Printf("CreateNVMeSubsystem: Received from client: %v", in)
-	params := NvdaSubsystemNvmeCreateParams{
+	params := models.NvdaSubsystemNvmeCreateParams{
 		Nqn:          in.NvMeSubsystem.Spec.Nqn,
 		SerialNumber: in.NvMeSubsystem.Spec.SerialNumber,
 		ModelNumber:  in.NvMeSubsystem.Spec.ModelNumber,
 	}
-	var result NvdaSubsystemNvmeCreateResult
+	var result models.NvdaSubsystemNvmeCreateResult
 	err := server.Call("subsystem_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -50,7 +51,7 @@ func (s *exServer) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSub
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	var ver GetVersionResult
+	var ver models.GetVersionResult
 	err = server.Call("spdk_get_version", nil, &ver)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -75,10 +76,10 @@ func (s *exServer) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSub
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	params := NvdaSubsystemNvmeDeleteParams{
+	params := models.NvdaSubsystemNvmeDeleteParams{
 		Nqn: subsys.Spec.Nqn,
 	}
-	var result NvdaSubsystemNvmeDeleteResult
+	var result models.NvdaSubsystemNvmeDeleteResult
 	err := server.Call("subsystem_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -101,7 +102,7 @@ func (s *exServer) UpdateNVMeSubsystem(ctx context.Context, in *pb.UpdateNVMeSub
 
 func (s *exServer) ListNVMeSubsystems(ctx context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
 	log.Printf("ListNVMeSubsystems: Received from client: %v", in)
-	var result []NvdaSubsystemNvmeListResult
+	var result []models.NvdaSubsystemNvmeListResult
 	err := server.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -124,7 +125,7 @@ func (s *exServer) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystem
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result []NvdaSubsystemNvmeListResult
+	var result []models.NvdaSubsystemNvmeListResult
 	err := server.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -159,7 +160,7 @@ func (s *exServer) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCo
 		return nil, err
 	}
 
-	params := NvdaControllerNvmeCreateParams{
+	params := models.NvdaControllerNvmeCreateParams{
 		Nqn:              subsys.Spec.Nqn,
 		EmulationManager: "mlx5_0",
 		PfID:             int(in.NvMeController.Spec.PcieId.PhysicalFunction),
@@ -167,7 +168,7 @@ func (s *exServer) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCo
 		// MaxNamespaces:    int(in.NvMeController.Spec.MaxNsq),
 		// NrIoQueues:       int(in.NvMeController.Spec.MaxNcq),
 	}
-	var result NvdaControllerNvmeCreateResult
+	var result models.NvdaControllerNvmeCreateResult
 	err := server.Call("controller_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -204,11 +205,11 @@ func (s *exServer) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeCo
 		return nil, err
 	}
 
-	params := NvdaControllerNvmeDeleteParams{
+	params := models.NvdaControllerNvmeDeleteParams{
 		Subnqn: subsys.Spec.Nqn,
 		Cntlid: int(controller.Spec.NvmeControllerId),
 	}
-	var result NvdaControllerNvmeDeleteResult
+	var result models.NvdaControllerNvmeDeleteResult
 	err := server.Call("controller_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -237,7 +238,7 @@ func (s *exServer) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeContr
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result []NvdaControllerNvmeListResult
+	var result []models.NvdaControllerNvmeListResult
 	err := server.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -262,7 +263,7 @@ func (s *exServer) GetNVMeController(ctx context.Context, in *pb.GetNVMeControll
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result []NvdaControllerNvmeListResult
+	var result []models.NvdaControllerNvmeListResult
 	err := server.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -297,7 +298,7 @@ func (s *exServer) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNam
 		return nil, err
 	}
 	// TODO: do lookup through VolumeId key instead of using it's value
-	params := NvdaControllerNvmeNamespaceAttachParams{
+	params := models.NvdaControllerNvmeNamespaceAttachParams{
 		BdevType: "spdk",
 		Bdev:     in.NvMeNamespace.Spec.VolumeId.Value,
 		Nsid:     int(in.NvMeNamespace.Spec.HostNsid),
@@ -307,7 +308,7 @@ func (s *exServer) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNam
 		Nguid:    in.NvMeNamespace.Spec.Nguid,
 		Eui64:    strconv.FormatInt(in.NvMeNamespace.Spec.Eui64, 10),
 	}
-	var result NvdaControllerNvmeNamespaceAttachResult
+	var result models.NvdaControllerNvmeNamespaceAttachResult
 	err := server.Call("controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -346,12 +347,12 @@ func (s *exServer) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNam
 	}
 
 	// TODO: fix hard-coded Cntlid
-	params := NvdaControllerNvmeNamespaceDetachParams{
+	params := models.NvdaControllerNvmeNamespaceDetachParams{
 		Nsid:   int(namespace.Spec.HostNsid),
 		Subnqn: subsys.Spec.Nqn,
 		Cntlid: 0,
 	}
-	var result NvdaControllerNvmeNamespaceDetachResult
+	var result models.NvdaControllerNvmeNamespaceDetachResult
 	err := server.Call("controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -381,11 +382,11 @@ func (s *exServer) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamesp
 		return nil, err
 	}
 	// TODO: fix hard-coded Cntlid
-	params := NvdaControllerNvmeNamespaceListParams{
+	params := models.NvdaControllerNvmeNamespaceListParams{
 		Subnqn: subsys.Spec.Nqn,
 		Cntlid: 0,
 	}
-	var result NvdaControllerNvmeNamespaceListResult
+	var result models.NvdaControllerNvmeNamespaceListResult
 	err := server.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -415,11 +416,11 @@ func (s *exServer) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespace
 		return nil, err
 	}
 	// TODO: fix hard-coded Cntlid
-	params := NvdaControllerNvmeNamespaceListParams{
+	params := models.NvdaControllerNvmeNamespaceListParams{
 		Subnqn: subsys.Spec.Nqn,
 		Cntlid: 0,
 	}
-	var result NvdaControllerNvmeNamespaceListResult
+	var result models.NvdaControllerNvmeNamespaceListResult
 	err := server.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -445,7 +446,7 @@ func (s *exServer) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceS
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result NvdaControllerNvmeStatsResult
+	var result models.NvdaControllerNvmeStatsResult
 	err := server.Call("controller_nvme_get_iostat", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)

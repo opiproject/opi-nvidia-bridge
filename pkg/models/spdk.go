@@ -2,8 +2,8 @@
 // Copyright (c) 2022 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
 
-// Package frontend implememnts the FrontEnd APIs (host facing) of the storage Server
-package frontend
+// Package models holds definitions for SPDK json RPC structs
+package models
 
 // NvdaSubsystemNvmeCreateParams represents a Nvidia subsystem create request
 type NvdaSubsystemNvmeCreateParams struct {

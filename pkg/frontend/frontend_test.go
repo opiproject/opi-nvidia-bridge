@@ -1238,7 +1238,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeNamespaceListResult"),
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type models.NvdaControllerNvmeNamespaceListResult"),
 			true,
 		},
 		{
@@ -1374,7 +1374,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeNamespaceListResult"),
+			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go struct field .result of type models.NvdaControllerNvmeNamespaceListResult"),
 			true,
 		},
 		{
@@ -1505,7 +1505,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
-			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go struct field .result of type frontend.NvdaControllerNvmeStatsResult"),
+			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go struct field .result of type models.NvdaControllerNvmeStatsResult"),
 			true,
 		},
 		{

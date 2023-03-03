@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2022 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright (C) 2023 Intel Corporation
 
 // Package frontend implememnts the FrontEnd APIs (host facing) of the storage Server
 package frontend
@@ -29,14 +30,18 @@ type Server struct {
 	Subsystems  map[string]*pb.NVMeSubsystem
 	Controllers map[string]*pb.NVMeController
 	Namespaces  map[string]*pb.NVMeNamespace
+
+	rpc server.JSONRPC
 }
 
 // NewServer creates initialized instance of NVMe server
-func NewServer() *Server {
+func NewServer(jsonRPC server.JSONRPC) *Server {
 	return &Server{
 		Subsystems:  make(map[string]*pb.NVMeSubsystem),
 		Controllers: make(map[string]*pb.NVMeController),
 		Namespaces:  make(map[string]*pb.NVMeNamespace),
+
+		rpc: jsonRPC,
 	}
 }
 
@@ -49,7 +54,7 @@ func (s *Server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 		ModelNumber:  in.NvMeSubsystem.Spec.ModelNumber,
 	}
 	var result models.NvdaSubsystemNvmeCreateResult
-	err := server.Call("subsystem_nvme_create", &params, &result)
+	err := s.rpc.Call("subsystem_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -62,7 +67,7 @@ func (s *Server) CreateNVMeSubsystem(ctx context.Context, in *pb.CreateNVMeSubsy
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	var ver spdk.GetVersionResult
-	err = server.Call("spdk_get_version", nil, &ver)
+	err = s.rpc.Call("spdk_get_version", nil, &ver)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -91,7 +96,7 @@ func (s *Server) DeleteNVMeSubsystem(ctx context.Context, in *pb.DeleteNVMeSubsy
 		Nqn: subsys.Spec.Nqn,
 	}
 	var result models.NvdaSubsystemNvmeDeleteResult
-	err := server.Call("subsystem_nvme_delete", &params, &result)
+	err := s.rpc.Call("subsystem_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -116,7 +121,7 @@ func (s *Server) UpdateNVMeSubsystem(ctx context.Context, in *pb.UpdateNVMeSubsy
 func (s *Server) ListNVMeSubsystems(ctx context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
 	log.Printf("ListNVMeSubsystems: Received from client: %v", in)
 	var result []models.NvdaSubsystemNvmeListResult
-	err := server.Call("subsystem_nvme_list", nil, &result)
+	err := s.rpc.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -140,7 +145,7 @@ func (s *Server) GetNVMeSubsystem(ctx context.Context, in *pb.GetNVMeSubsystemRe
 		return nil, err
 	}
 	var result []models.NvdaSubsystemNvmeListResult
-	err := server.Call("subsystem_nvme_list", nil, &result)
+	err := s.rpc.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -182,7 +187,7 @@ func (s *Server) CreateNVMeController(ctx context.Context, in *pb.CreateNVMeCont
 		// NrIoQueues:       int(in.NvMeController.Spec.MaxNcq),
 	}
 	var result models.NvdaControllerNvmeCreateResult
-	err := server.Call("controller_nvme_create", &params, &result)
+	err := s.rpc.Call("controller_nvme_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -224,7 +229,7 @@ func (s *Server) DeleteNVMeController(ctx context.Context, in *pb.DeleteNVMeCont
 		Cntlid: int(controller.Spec.NvmeControllerId),
 	}
 	var result models.NvdaControllerNvmeDeleteResult
-	err := server.Call("controller_nvme_delete", &params, &result)
+	err := s.rpc.Call("controller_nvme_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -255,7 +260,7 @@ func (s *Server) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControl
 		return nil, err
 	}
 	var result []models.NvdaControllerNvmeListResult
-	err := server.Call("controller_list", nil, &result)
+	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -281,7 +286,7 @@ func (s *Server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 		return nil, err
 	}
 	var result []models.NvdaControllerNvmeListResult
-	err := server.Call("controller_list", nil, &result)
+	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -325,7 +330,7 @@ func (s *Server) CreateNVMeNamespace(ctx context.Context, in *pb.CreateNVMeNames
 		Eui64:    strconv.FormatInt(in.NvMeNamespace.Spec.Eui64, 10),
 	}
 	var result models.NvdaControllerNvmeNamespaceAttachResult
-	err := server.Call("controller_nvme_namespace_attach", &params, &result)
+	err := s.rpc.Call("controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -370,7 +375,7 @@ func (s *Server) DeleteNVMeNamespace(ctx context.Context, in *pb.DeleteNVMeNames
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceDetachResult
-	err := server.Call("controller_nvme_namespace_detach", &params, &result)
+	err := s.rpc.Call("controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -406,7 +411,7 @@ func (s *Server) ListNVMeNamespaces(ctx context.Context, in *pb.ListNVMeNamespac
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := server.Call("controller_nvme_namespace_list", &params, &result)
+	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -441,7 +446,7 @@ func (s *Server) GetNVMeNamespace(ctx context.Context, in *pb.GetNVMeNamespaceRe
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := server.Call("controller_nvme_namespace_list", &params, &result)
+	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -468,7 +473,7 @@ func (s *Server) NVMeNamespaceStats(ctx context.Context, in *pb.NVMeNamespaceSta
 		return nil, err
 	}
 	var result models.NvdaControllerNvmeStatsResult
-	err := server.Call("controller_nvme_get_iostat", nil, &result)
+	err := s.rpc.Call("controller_nvme_get_iostat", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err

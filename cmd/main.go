@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2022 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright (C) 2023 Intel Corporation
 
 // main is the main package of the application
 package main
@@ -37,14 +38,18 @@ func main() {
 	}
 
 	s := grpc.NewServer()
+	frontendOpiNvidiaServer := fe.NewServer()
+	frontendOpiSpdkServer := frontend.NewServer()
+	backendOpiSpdkServer := backend.NewServer()
+	middleendOpiSpdkServer := middleend.NewServer()
 
-	pb.RegisterFrontendNvmeServiceServer(s, fe.NewServer())
-	pb.RegisterFrontendVirtioBlkServiceServer(s, &frontend.Server{})
-	pb.RegisterFrontendVirtioScsiServiceServer(s, &frontend.Server{})
-	pb.RegisterNVMfRemoteControllerServiceServer(s, &backend.Server{})
-	pb.RegisterNullDebugServiceServer(s, &backend.Server{})
-	pb.RegisterAioControllerServiceServer(s, &backend.Server{})
-	pb.RegisterMiddleendServiceServer(s, &middleend.Server{})
+	pb.RegisterFrontendNvmeServiceServer(s, frontendOpiNvidiaServer)
+	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiSpdkServer)
+	pb.RegisterFrontendVirtioScsiServiceServer(s, frontendOpiSpdkServer)
+	pb.RegisterNVMfRemoteControllerServiceServer(s, backendOpiSpdkServer)
+	pb.RegisterNullDebugServiceServer(s, backendOpiSpdkServer)
+	pb.RegisterAioControllerServiceServer(s, backendOpiSpdkServer)
+	pb.RegisterMiddleendServiceServer(s, middleendOpiSpdkServer)
 	pc.RegisterInventorySvcServer(s, &inventory.Server{})
 	ps.RegisterIPsecServer(s, &ipsec.Server{})
 

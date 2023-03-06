@@ -32,6 +32,24 @@ import like this:
 import "github.com/opiproject/opi-nvidia-bridge/pkg/frontend"
 ```
 
+## FW config
+
+for Nvme:
+
+```bash
+sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s NVME_EMULATION_ENABLE=1
+sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s NVME_EMULATION_NUM_PF=2 NVME_EMULATION_NUM_VF=2
+```
+
+for VirtioBlk:
+
+```bash
+sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s VIRTIO_BLK_EMULATION_ENABLE=1
+sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s VIRTIO_BLK_EMULATION_NUM_PF=2 VIRTIO_BLK_EMULATION_NUM_VF=2
+```
+
+And then power cycle your system.
+
 ## Using docker
 
 on DPU/IPU (i.e. with IP=10.10.10.1) run

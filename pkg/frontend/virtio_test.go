@@ -34,19 +34,19 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 		"valid virtio-blk creation": {
 			in:          virtioBlk,
 			out:         virtioBlk,
-			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`},
+			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":"VblkEmu0pf0"}`},
 			expectedErr: status.Error(codes.OK, ""),
 		},
 		"spdk virtio-blk creation error": {
 			in:          virtioBlk,
 			out:         nil,
-			spdk:        []string{`{"id":%d,"error":{"code":1,"message":"some internal error"},"result":false}`},
+			spdk:        []string{`{"id":%d,"error":{"code":1,"message":"some internal error"},"result":"VblkEmu0pf0"}`},
 			expectedErr: errFailedSpdkCall,
 		},
 		"spdk virtio-blk creation returned false response with no error": {
 			in:          virtioBlk,
 			out:         nil,
-			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
+			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":""}`},
 			expectedErr: errUnexpectedSpdkCallResult,
 		},
 	}

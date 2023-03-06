@@ -237,7 +237,7 @@ func (s *Server) ListNVMeControllers(ctx context.Context, in *pb.ListNVMeControl
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result []models.NvdaControllerNvmeListResult
+	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -263,7 +263,7 @@ func (s *Server) GetNVMeController(ctx context.Context, in *pb.GetNVMeController
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	var result []models.NvdaControllerNvmeListResult
+	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)

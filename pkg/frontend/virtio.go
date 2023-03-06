@@ -13,7 +13,6 @@ import (
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
-	spdk "github.com/opiproject/opi-spdk-bridge/pkg/models"
 
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
@@ -29,18 +28,23 @@ var (
 // CreateVirtioBlk creates a Virtio block device
 func (s *Server) CreateVirtioBlk(ctx context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("CreateVirtioBlk: Received from client: %v", in)
-	params := spdk.VhostCreateBlkControllerParams{
-		Ctrlr:   in.VirtioBlk.Id.Value,
-		DevName: in.VirtioBlk.VolumeId.Value,
+	params := models.NvdaControllerVirtioBlkCreateParams{
+		Serial:           in.VirtioBlk.Id.Value,
+		Bdev:             in.VirtioBlk.VolumeId.Value,
+		PfID:             int(in.VirtioBlk.PcieId.PhysicalFunction),
+		VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),
+		NumQueues:        int(in.VirtioBlk.MaxIoQps),
+		BdevType:         "spdk",
+		EmulationManager: "mlx5_0",
 	}
-	var result spdk.VhostCreateBlkControllerResult
+	var result models.NvdaControllerVirtioBlkCreateResult
 	err := s.rpc.Call("controller_virtio_blk_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, fmt.Errorf("%w for %v", errFailedSpdkCall, in)
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if !result {
+	if result == "" {
 		log.Printf("Could not create: %v", in)
 		return nil, fmt.Errorf("%w for %v", errUnexpectedSpdkCallResult, in)
 	}
@@ -57,10 +61,11 @@ func (s *Server) CreateVirtioBlk(ctx context.Context, in *pb.CreateVirtioBlkRequ
 // DeleteVirtioBlk deletes a Virtio block device
 func (s *Server) DeleteVirtioBlk(ctx context.Context, in *pb.DeleteVirtioBlkRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteVirtioBlk: Received from client: %v", in)
-	params := spdk.VhostDeleteControllerParams{
-		Ctrlr: in.Name,
+	params := models.NvdaControllerVirtioBlkDeleteParams{
+		Name:  in.Name,
+		Force: true,
 	}
-	var result spdk.VhostDeleteControllerResult
+	var result models.NvdaControllerVirtioBlkDeleteResult
 	err := s.rpc.Call("controller_virtio_blk_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -82,7 +87,7 @@ func (s *Server) UpdateVirtioBlk(ctx context.Context, in *pb.UpdateVirtioBlkRequ
 // ListVirtioBlks lists Virtio block devices
 func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
 	log.Printf("ListVirtioBlks: Received from client: %v", in)
-	var result []models.NvdaControllerNvmeListResult
+	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -102,7 +107,7 @@ func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksReques
 // GetVirtioBlk gets a Virtio block device
 func (s *Server) GetVirtioBlk(ctx context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("GetVirtioBlk: Received from client: %v", in)
-	var result []models.NvdaControllerNvmeListResult
+	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)

@@ -22,6 +22,7 @@ import (
 
 type frontendClient struct {
 	pb.FrontendNvmeServiceClient
+	pb.FrontendVirtioBlkServiceClient
 }
 
 type testEnv struct {
@@ -61,6 +62,7 @@ func createTestEnvironment(startSpdkServer bool, spdkResponses []string) *testEn
 
 	env.client = &frontendClient{
 		pb.NewFrontendNvmeServiceClient(env.conn),
+		pb.NewFrontendVirtioBlkServiceClient(env.conn),
 	}
 
 	return env
@@ -70,6 +72,7 @@ func dialer(opiSpdkServer *Server) func(context.Context, string) (net.Conn, erro
 	listener := bufconn.Listen(1024 * 1024)
 	server := grpc.NewServer()
 	pb.RegisterFrontendNvmeServiceServer(server, opiSpdkServer)
+	pb.RegisterFrontendVirtioBlkServiceServer(server, opiSpdkServer)
 
 	go func() {
 		if err := server.Serve(listener); err != nil {

@@ -48,7 +48,7 @@ func main() {
 	middleendOpiSpdkServer := middleend.NewServerWithJSONRPC(jsonRPC)
 
 	pb.RegisterFrontendNvmeServiceServer(s, frontendOpiNvidiaServer)
-	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiSpdkServer)
+	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiNvidiaServer)
 	pb.RegisterFrontendVirtioScsiServiceServer(s, frontendOpiSpdkServer)
 	pb.RegisterNVMfRemoteControllerServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterNullDebugServiceServer(s, backendOpiSpdkServer)

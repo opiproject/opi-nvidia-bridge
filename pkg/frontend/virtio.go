@@ -12,6 +12,7 @@ import (
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
+	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	spdk "github.com/opiproject/opi-spdk-bridge/pkg/models"
 
 	"github.com/ulule/deepcopier"
@@ -33,7 +34,7 @@ func (s *Server) CreateVirtioBlk(ctx context.Context, in *pb.CreateVirtioBlkRequ
 		DevName: in.VirtioBlk.VolumeId.Value,
 	}
 	var result spdk.VhostCreateBlkControllerResult
-	err := s.rpc.Call("vhost_create_blk_controller", &params, &result)
+	err := s.rpc.Call("controller_virtio_blk_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, fmt.Errorf("%w for %v", errFailedSpdkCall, in)
@@ -60,7 +61,7 @@ func (s *Server) DeleteVirtioBlk(ctx context.Context, in *pb.DeleteVirtioBlkRequ
 		Ctrlr: in.Name,
 	}
 	var result spdk.VhostDeleteControllerResult
-	err := s.rpc.Call("vhost_delete_controller", &params, &result)
+	err := s.rpc.Call("controller_virtio_blk_delete", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -81,8 +82,8 @@ func (s *Server) UpdateVirtioBlk(ctx context.Context, in *pb.UpdateVirtioBlkRequ
 // ListVirtioBlks lists Virtio block devices
 func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
 	log.Printf("ListVirtioBlks: Received from client: %v", in)
-	var result []spdk.VhostGetControllersResult
-	err := s.rpc.Call("vhost_get_controllers", nil, &result)
+	var result []models.NvdaControllerNvmeListResult
+	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
@@ -91,7 +92,9 @@ func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksReques
 	Blobarray := make([]*pb.VirtioBlk, len(result))
 	for i := range result {
 		r := &result[i]
-		Blobarray[i] = &pb.VirtioBlk{Id: &pc.ObjectKey{Value: r.Ctrlr}}
+		if r.Type == "virtio_blk" {
+			Blobarray[i] = &pb.VirtioBlk{Id: &pc.ObjectKey{Value: fmt.Sprint(r.Cntlid)}}
+		}
 	}
 	return &pb.ListVirtioBlksResponse{VirtioBlks: Blobarray}, nil
 }
@@ -99,26 +102,45 @@ func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksReques
 // GetVirtioBlk gets a Virtio block device
 func (s *Server) GetVirtioBlk(ctx context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("GetVirtioBlk: Received from client: %v", in)
-	params := spdk.VhostGetControllersParams{
-		Name: in.Name,
-	}
-	var result []spdk.VhostGetControllersResult
-	err := s.rpc.Call("vhost_get_controllers", &params, &result)
+	var result []models.NvdaControllerNvmeListResult
+	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if len(result) != 1 {
-		msg := fmt.Sprintf("expecting exactly 1 result, got %d", len(result))
-		log.Print(msg)
-		return nil, status.Errorf(codes.InvalidArgument, msg)
+	for i := range result {
+		r := &result[i]
+		if r.Name == in.Name && r.Type == "virtio_blk" {
+			return &pb.VirtioBlk{Id: &pc.ObjectKey{Value: fmt.Sprint(r.Cntlid)}}, nil
+		}
 	}
-	return &pb.VirtioBlk{Id: &pc.ObjectKey{Value: result[0].Ctrlr}}, nil
+	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
+	log.Print(msg)
+	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
 // VirtioBlkStats gets a Virtio block device stats
 func (s *Server) VirtioBlkStats(ctx context.Context, in *pb.VirtioBlkStatsRequest) (*pb.VirtioBlkStatsResponse, error) {
-	log.Printf("Received from client: %v", in)
-	return &pb.VirtioBlkStatsResponse{}, nil
+	log.Printf("VirtioBlkStats: Received from client: %v", in)
+	var result models.NvdaControllerNvmeStatsResult
+	err := s.rpc.Call("controller_virtio_blk_get_iostat", nil, &result)
+	if err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	log.Printf("Received from SPDK: %v", result)
+	for _, c := range result.Controllers {
+		for _, r := range c.Bdevs {
+			if r.BdevName == in.ControllerId.Value {
+				return &pb.VirtioBlkStatsResponse{Id: in.ControllerId, Stats: &pb.VolumeStats{
+					ReadOpsCount:  int32(r.ReadIos),
+					WriteOpsCount: int32(r.WriteIos),
+				}}, nil
+			}
+		}
+	}
+	msg := fmt.Sprintf("Could not find Controller: %s", in.ControllerId.Value)
+	log.Print(msg)
+	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

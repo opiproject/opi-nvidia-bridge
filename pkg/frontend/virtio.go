@@ -98,7 +98,7 @@ func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksReques
 	for i := range result {
 		r := &result[i]
 		if r.Type == "virtio_blk" {
-			Blobarray[i] = &pb.VirtioBlk{Id: &pc.ObjectKey{Value: fmt.Sprint(r.Cntlid)}}
+			Blobarray[i] = &pb.VirtioBlk{Id: &pc.ObjectKey{Value: r.Name}, PcieId: &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)}}
 		}
 	}
 	return &pb.ListVirtioBlksResponse{VirtioBlks: Blobarray}, nil
@@ -117,7 +117,7 @@ func (s *Server) GetVirtioBlk(ctx context.Context, in *pb.GetVirtioBlkRequest) (
 	for i := range result {
 		r := &result[i]
 		if r.Name == in.Name && r.Type == "virtio_blk" {
-			return &pb.VirtioBlk{Id: &pc.ObjectKey{Value: fmt.Sprint(r.Cntlid)}}, nil
+			return &pb.VirtioBlk{Id: &pc.ObjectKey{Value: r.Name}, PcieId: &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)}}, nil
 		}
 	}
 	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)

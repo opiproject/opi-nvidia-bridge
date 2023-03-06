@@ -63,10 +63,10 @@ type NvdaControllerNvmeDeleteParams struct {
 // NvdaControllerNvmeDeleteResult represents a Nvidia Controller delete result
 type NvdaControllerNvmeDeleteResult bool
 
-// NvdaControllerNvmeListParams is empty
+// NvdaControllerListParams is empty (both Nvme and VirtIo)
 
-// NvdaControllerNvmeListResult represents a Nvidia Controller list request
-type NvdaControllerNvmeListResult struct {
+// NvdaControllerListResult represents a Nvidia Controller list request (both Nvme and VirtIo)
+type NvdaControllerListResult struct {
 	Subnqn           string `json:"subnqn"`
 	Cntlid           int    `json:"cntlid"`
 	Name             string `json:"name"`
@@ -138,3 +138,26 @@ type NvdaControllerNvmeStatsResult struct {
 		} `json:"bdevs"`
 	} `json:"controllers"`
 }
+
+// NvdaControllerVirtioBlkCreateParams represents a Nvidia Controller create request
+type NvdaControllerVirtioBlkCreateParams struct {
+	EmulationManager string `json:"emulation_manager"`
+	BdevType         string `json:"bdev_type"`
+	PfID             int    `json:"pf_id"`
+	VfID             int    `json:"vf_id"`
+	NumQueues        int    `json:"num_queues"`
+	Bdev             string `json:"bdev"`
+	Serial           string `json:"serial"`
+}
+
+// NvdaControllerVirtioBlkCreateResult represents a Nvidia Controller create result
+type NvdaControllerVirtioBlkCreateResult string
+
+// NvdaControllerVirtioBlkDeleteParams represents a Nvidia Controller delete request
+type NvdaControllerVirtioBlkDeleteParams struct {
+	Name  string `json:"name"`
+	Force bool   `json:"force"`
+}
+
+// NvdaControllerVirtioBlkDeleteResult represents a Nvidia Controller delete result
+type NvdaControllerVirtioBlkDeleteResult bool

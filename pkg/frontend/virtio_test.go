@@ -8,12 +8,14 @@ package frontend
 import (
 	"bytes"
 	"fmt"
+	"reflect"
 	"strings"
 	"testing"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
+	"google.golang.org/protobuf/types/known/emptypb"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
@@ -125,6 +127,88 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 						t.Error("error message: expected", tt.errMsg, "received", er.Message())
 					}
 				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *emptypb.Empty
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK response",
+			"controller-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not delete NQN:ID %v", "nqn.2022-09.io.spdk:opi3:17"),
+			true,
+		},
+		{
+			"valid request with empty SPDK response",
+			"controller-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_delete: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK response",
+			"controller-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_delete: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK response",
+			"controller-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_delete: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK response",
+			"controller-test",
+			&emptypb.Empty{},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
+			codes.OK,
+			"",
+			true,
+		},
+	}
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testEnv := createTestEnvironment(tt.start, tt.spdk)
+			defer testEnv.Close()
+
+			request := &pb.DeleteVirtioBlkRequest{Name: tt.in}
+			response, err := testEnv.client.DeleteVirtioBlk(testEnv.ctx, request)
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+			if reflect.TypeOf(response) != reflect.TypeOf(tt.out) {
+				t.Error("response: expected", reflect.TypeOf(tt.out), "received", reflect.TypeOf(response))
 			}
 		})
 	}

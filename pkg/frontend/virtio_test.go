@@ -7,6 +7,7 @@ package frontend
 
 import (
 	"bytes"
+	"fmt"
 	"strings"
 	"testing"
 
@@ -76,6 +77,53 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 			} else {
 				if test.expectedErr != nil {
 					t.Error("expected err contains", test.expectedErr, "received nil")
+				}
+			}
+		})
+	}
+}
+
+func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      *pb.VirtioBlk
+		out     *pb.VirtioBlk
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"unimplemented method",
+			&pb.VirtioBlk{},
+			nil,
+			[]string{""},
+			codes.Unimplemented,
+			fmt.Sprintf("%v method is not implemented", "UpdateVirtioBlk"),
+			false,
+		},
+	}
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testEnv := createTestEnvironment(tt.start, tt.spdk)
+			defer testEnv.Close()
+
+			request := &pb.UpdateVirtioBlkRequest{VirtioBlk: tt.in}
+			response, err := testEnv.client.UpdateVirtioBlk(testEnv.ctx, request)
+			if response != nil {
+				t.Error("response: expected", codes.Unimplemented, "received", response)
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
 				}
 			}
 		})

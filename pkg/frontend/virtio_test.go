@@ -132,6 +132,109 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 	}
 }
 
+func TestFrontEnd_ListVirtioBlks(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     []*pb.VirtioBlk
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK response",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+			true,
+		},
+		{
+			"valid request with empty SPDK response",
+			"subsystem-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK response",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK response",
+			"subsystem-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK response",
+			"subsystem-test",
+			[]*pb.VirtioBlk{
+				{
+					Id:       &pc.ObjectKey{Value: "VblkEmu0pf0"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
+				{
+					Id:       &pc.ObjectKey{Value: "VblkEmu0pf1"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
+				{
+					Id:       &pc.ObjectKey{Value: "VblkEmu0pf2"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
+				{},
+			},
+			[]string{`{"jsonrpc":"2.0","id":%d,"result":[{"name":"VblkEmu0pf0","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf1","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf2","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"subnqn":"nqn.2020-12.mlnx.snap","cntlid":0,"name":"NvmeEmu0pf0","emulation_manager":"mlx5_0","type":"nvme","pci_index":0,"pci_bdf":"ca:00.2"}],"error":{"code":0,"message":""}}`},
+			codes.OK,
+			"",
+			true,
+		},
+	}
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testEnv := createTestEnvironment(tt.start, tt.spdk)
+			defer testEnv.Close()
+
+			request := &pb.ListVirtioBlksRequest{Parent: tt.in}
+			response, err := testEnv.client.ListVirtioBlks(testEnv.ctx, request)
+
+			if response != nil {
+				if !reflect.DeepEqual(response.VirtioBlks, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.VirtioBlks)
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 	tests := []struct {
 		name    string

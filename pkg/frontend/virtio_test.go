@@ -326,6 +326,103 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 	}
 }
 
+func TestFrontEnd_VirtioBlkStats(t *testing.T) {
+	tests := []struct {
+		name    string
+		in      string
+		out     *pb.VolumeStats
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		start   bool
+	}{
+		{
+			"valid request with invalid SPDK response",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
+			codes.InvalidArgument,
+			fmt.Sprintf("Could not find Controller: %v", "namespace-test"),
+			true,
+		},
+		{
+			"valid request with invalid marshal SPDK response",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json: cannot unmarshal array into Go value of type models.NvdaControllerNvmeStatsResult"),
+			true,
+		},
+		{
+			"valid request with empty SPDK response",
+			"namespace-test",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "EOF"),
+			true,
+		},
+		{
+			"valid request with ID mismatch SPDK response",
+			"namespace-test",
+			nil,
+			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json response ID mismatch"),
+			true,
+		},
+		{
+			"valid request with error code from SPDK response",
+			"namespace-test",
+			nil,
+			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
+			codes.Unknown,
+			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json response error: myopierr"),
+			true,
+		},
+		{
+			"valid request with valid SPDK response",
+			"Malloc0",
+			&pb.VolumeStats{
+				ReadOpsCount:  12345,
+				WriteOpsCount: 54321,
+			},
+			[]string{`{"jsonrpc":"2.0","id":%d,"result":{"controllers":[{"name":"VblkEmu0pf0","bdevs":[{"bdev_name":"Malloc0","read_ios":12345,"completed_read_ios":0,"completed_unordered_read_ios":0,"write_ios":54321,"completed_write_ios":0,"completed_unordered_write_ios":0,"flush_ios":0,"completed_flush_ios":0,"completed_unordered_flush_ios":0,"err_read_ios":0,"err_write_ios":0,"err_flush_ios":0}]}]},"error":{"code":0,"message":""}}`},
+			codes.OK,
+			"",
+			true,
+		},
+	}
+
+	// run tests
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			testEnv := createTestEnvironment(tt.start, tt.spdk)
+			defer testEnv.Close()
+
+			request := &pb.VirtioBlkStatsRequest{ControllerId: &pc.ObjectKey{Value: tt.in}}
+			response, err := testEnv.client.VirtioBlkStats(testEnv.ctx, request)
+			if response != nil {
+				if !reflect.DeepEqual(response.Stats, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.Stats)
+				}
+			}
+
+			if err != nil {
+				if er, ok := status.FromError(err); ok {
+					if er.Code() != tt.errCode {
+						t.Error("error code: expected", codes.InvalidArgument, "received", er.Code())
+					}
+					if er.Message() != tt.errMsg {
+						t.Error("error message: expected", tt.errMsg, "received", er.Message())
+					}
+				}
+			}
+		})
+	}
+}
+
 func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 	tests := []struct {
 		name    string

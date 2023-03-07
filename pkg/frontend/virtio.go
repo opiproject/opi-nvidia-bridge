@@ -29,10 +29,10 @@ var (
 func (s *Server) CreateVirtioBlk(ctx context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("CreateVirtioBlk: Received from client: %v", in)
 	params := models.NvdaControllerVirtioBlkCreateParams{
-		Serial:           in.VirtioBlk.Id.Value,
-		Bdev:             in.VirtioBlk.VolumeId.Value,
-		PfID:             int(in.VirtioBlk.PcieId.PhysicalFunction),
-		VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),
+		Serial: in.VirtioBlk.Id.Value,
+		Bdev:   in.VirtioBlk.VolumeId.Value,
+		PfID:   int(in.VirtioBlk.PcieId.PhysicalFunction),
+		// VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),
 		NumQueues:        int(in.VirtioBlk.MaxIoQps),
 		BdevType:         "spdk",
 		EmulationManager: "mlx5_0",
@@ -80,8 +80,8 @@ func (s *Server) DeleteVirtioBlk(ctx context.Context, in *pb.DeleteVirtioBlkRequ
 
 // UpdateVirtioBlk updates a Virtio block device
 func (s *Server) UpdateVirtioBlk(ctx context.Context, in *pb.UpdateVirtioBlkRequest) (*pb.VirtioBlk, error) {
-	log.Printf("Received from client: %v", in)
-	return &pb.VirtioBlk{}, nil
+	log.Printf("UpdateVirtioBlk: Received from client: %v", in)
+	return nil, status.Errorf(codes.Unimplemented, "UpdateVirtioBlk method is not implemented")
 }
 
 // ListVirtioBlks lists Virtio block devices

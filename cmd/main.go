@@ -43,9 +43,9 @@ func main() {
 	s := grpc.NewServer()
 	jsonRPC := server.NewUnixSocketJSONRPC(spdkSocket)
 	frontendOpiNvidiaServer := fe.NewServer(jsonRPC)
-	frontendOpiSpdkServer := frontend.NewServerWithJSONRPC(jsonRPC)
-	backendOpiSpdkServer := backend.NewServerWithJSONRPC(jsonRPC)
-	middleendOpiSpdkServer := middleend.NewServerWithJSONRPC(jsonRPC)
+	frontendOpiSpdkServer := frontend.NewServer(jsonRPC)
+	backendOpiSpdkServer := backend.NewServer(jsonRPC)
+	middleendOpiSpdkServer := middleend.NewServer(jsonRPC)
 
 	pb.RegisterFrontendNvmeServiceServer(s, frontendOpiNvidiaServer)
 	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiNvidiaServer)

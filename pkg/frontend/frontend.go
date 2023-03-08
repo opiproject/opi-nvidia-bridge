@@ -17,8 +17,8 @@ type Server struct {
 	Subsystems  map[string]*pb.NVMeSubsystem
 	Controllers map[string]*pb.NVMeController
 	Namespaces  map[string]*pb.NVMeNamespace
-
-	rpc server.JSONRPC
+	VirtioCtrls map[string]*pb.VirtioBlk
+	rpc         server.JSONRPC
 }
 
 // NewServer creates initialized instance of NVMe server
@@ -27,7 +27,7 @@ func NewServer(jsonRPC server.JSONRPC) *Server {
 		Subsystems:  make(map[string]*pb.NVMeSubsystem),
 		Controllers: make(map[string]*pb.NVMeController),
 		Namespaces:  make(map[string]*pb.NVMeNamespace),
-
-		rpc: jsonRPC,
+		VirtioCtrls: make(map[string]*pb.VirtioBlk),
+		rpc:         jsonRPC,
 	}
 }

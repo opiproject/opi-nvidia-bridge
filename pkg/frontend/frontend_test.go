@@ -117,4 +117,11 @@ var (
 			PciOperState: 1,
 		},
 	}
+
+	testVirtioCtrl = pb.VirtioBlk{
+		Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
+		PcieId:   &pb.PciEndpoint{PhysicalFunction: 42},
+		VolumeId: &pc.ObjectKey{Value: "Malloc42"},
+		MaxIoQps: 1,
+	}
 )

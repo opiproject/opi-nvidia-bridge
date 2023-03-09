@@ -18,6 +18,11 @@ This project welcomes contributions and suggestions.  We are happy to have the C
 
 See [CONTRIBUTING](https://github.com/opiproject/opi/blob/main/CONTRIBUTING.md) and [GitHub Basic Process](https://github.com/opiproject/opi/blob/main/doc-github-rules.md) for more details.
 
+## Documentation
+
+* Doca <https://docs.nvidia.com/doca/sdk/emulated-devices/index.html>
+* and <https://docs.nvidia.com/networking/display/BlueFieldDPUOSLatest/BlueField+SNAP+on+DPU>
+
 ## Getting started
 
 build like this:

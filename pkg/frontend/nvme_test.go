@@ -25,8 +25,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		SerialNumber: "OpiSerialNumber",
 		ModelNumber:  "OpiModelNumber",
 	}
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeSubsystem
 		out     *pb.NVMeSubsystem
 		spdk    []string
@@ -34,8 +33,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			&pb.NVMeSubsystem{
 				Spec: spec,
 			},
@@ -45,8 +43,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			&pb.NVMeSubsystem{
 				Spec: spec,
 			},
@@ -56,8 +53,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_create: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			&pb.NVMeSubsystem{
 				Spec: spec,
 			},
@@ -67,8 +63,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_create: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			&pb.NVMeSubsystem{
 				Spec: spec,
 			},
@@ -78,8 +73,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_create: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			&pb.NVMeSubsystem{
 				Spec: spec,
 			},
@@ -103,8 +97,8 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -137,8 +131,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeSubsystem
 		out     *pb.NVMeSubsystem
 		spdk    []string
@@ -146,8 +139,7 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			&pb.NVMeSubsystem{},
 			nil,
 			[]string{""},
@@ -158,8 +150,8 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -188,8 +180,7 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		out     []*pb.NVMeSubsystem
 		spdk    []string
 		errCode codes.Code
@@ -197,8 +188,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 		start   bool
 		size    int32
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.InvalidArgument,
@@ -206,8 +196,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			nil,
 			[]string{""},
 			codes.Unknown,
@@ -215,8 +204,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
@@ -224,8 +212,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
 			codes.Unknown,
@@ -233,8 +220,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"pagination negative",
+		"pagination negative": {
 			nil,
 			[]string{},
 			codes.InvalidArgument,
@@ -242,8 +228,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			false,
 			-10,
 		},
-		{
-			"pagination",
+		"pagination": {
 			[]*pb.NVMeSubsystem{
 				{
 					Spec: &pb.NVMeSubsystemSpec{
@@ -260,8 +245,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			1,
 		},
-		{
-			"pagination overflow",
+		"pagination overflow": {
 			[]*pb.NVMeSubsystem{
 				{
 					Spec: &pb.NVMeSubsystemSpec{
@@ -292,8 +276,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			true,
 			1000,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			[]*pb.NVMeSubsystem{
 				{
 					Spec: &pb.NVMeSubsystemSpec{
@@ -327,8 +310,8 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -359,8 +342,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.NVMeSubsystem
 		spdk    []string
@@ -368,8 +350,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -377,8 +358,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("Could not find NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -386,8 +366,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_list: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -395,8 +374,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_list: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -404,8 +382,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			fmt.Sprintf("subsystem_nvme_list: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"subsystem-test",
 			&pb.NVMeSubsystem{
 				Spec: &pb.NVMeSubsystemSpec{
@@ -423,8 +400,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			"",
 			true,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-subsystem-id",
 			nil,
 			[]string{""},
@@ -435,8 +411,8 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -470,8 +446,7 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.NVMeSubsystemStatsResponse
 		spdk    []string
@@ -479,8 +454,7 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -491,8 +465,8 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -533,8 +507,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 		PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 		NvmeControllerId: 17,
 	}
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeController
 		out     *pb.NVMeController
 		spdk    []string
@@ -542,8 +515,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			&pb.NVMeController{
 				Spec: spec,
 			},
@@ -553,8 +525,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			fmt.Sprintf("Could not create CTRL: %v", "controller-test"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			&pb.NVMeController{
 				Spec: spec,
 			},
@@ -564,8 +535,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_nvme_create: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			&pb.NVMeController{
 				Spec: spec,
 			},
@@ -575,8 +545,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_nvme_create: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			&pb.NVMeController{
 				Spec: spec,
 			},
@@ -586,8 +555,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_nvme_create: %v", "json response error: Invalid parameters"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			&pb.NVMeController{
 				Spec: controllerSpec,
 			},
@@ -610,8 +578,8 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -644,8 +612,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateNVMeController(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeController
 		out     *pb.NVMeController
 		spdk    []string
@@ -653,8 +620,7 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			&pb.NVMeController{},
 			nil,
 			[]string{""},
@@ -665,8 +631,8 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -695,8 +661,7 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 }
 
 func TestFrontEnd_ListNVMeControllers(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     []*pb.NVMeController
 		spdk    []string
@@ -705,8 +670,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		start   bool
 		size    int32
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -715,8 +679,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -725,8 +688,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -735,8 +697,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -745,8 +706,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"pagination negative",
+		"pagination negative": {
 			"subsystem-test",
 			nil,
 			[]string{},
@@ -755,8 +715,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			false,
 			-10,
 		},
-		{
-			"pagination",
+		"pagination": {
 			"subsystem-test",
 			[]*pb.NVMeController{
 				{
@@ -771,8 +730,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			1,
 		},
-		{
-			"pagination overflow",
+		"pagination overflow": {
 			"subsystem-test",
 			[]*pb.NVMeController{
 				{
@@ -797,8 +755,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			1000,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"subsystem-test",
 			[]*pb.NVMeController{
 				{
@@ -823,8 +780,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-subsystem-id",
 			nil,
 			[]string{""},
@@ -836,8 +792,8 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -868,8 +824,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 }
 
 func TestFrontEnd_GetNVMeController(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.NVMeController
 		spdk    []string
@@ -877,8 +832,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -886,8 +840,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			fmt.Sprintf("Could not find NvmeControllerId: %v", "17"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"controller-test",
 			nil,
 			[]string{""},
@@ -895,8 +848,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -904,8 +856,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -913,8 +864,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"controller-test",
 			&pb.NVMeController{
 				Spec: &pb.NVMeControllerSpec{
@@ -929,8 +879,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			"",
 			true,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-subsystem-id",
 			nil,
 			[]string{""},
@@ -941,8 +890,8 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -976,8 +925,7 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 }
 
 func TestFrontEnd_NVMeControllerStats(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.NVMeControllerStatsResponse
 		spdk    []string
@@ -985,8 +933,7 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			"controller-test",
 			nil,
 			[]string{""},
@@ -997,8 +944,8 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1045,8 +992,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
 		Eui64:       1967554867335598546,
 	}
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeNamespace
 		out     *pb.NVMeNamespace
 		spdk    []string
@@ -1054,8 +1000,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			&pb.NVMeNamespace{
 				Spec: spec,
 			},
@@ -1065,8 +1010,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("Could not create NS: %v", "namespace-test"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			&pb.NVMeNamespace{
 				Spec: spec,
 			},
@@ -1076,8 +1020,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_attach: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			&pb.NVMeNamespace{
 				Spec: spec,
 			},
@@ -1087,8 +1030,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_attach: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			&pb.NVMeNamespace{
 				Spec: spec,
 			},
@@ -1098,8 +1040,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_attach: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			&pb.NVMeNamespace{
 				Spec: namespaceSpec,
 			},
@@ -1126,8 +1067,8 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1160,8 +1101,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.NVMeNamespace
 		out     *pb.NVMeNamespace
 		spdk    []string
@@ -1169,8 +1109,7 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			&pb.NVMeNamespace{},
 			nil,
 			[]string{""},
@@ -1181,8 +1120,8 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1211,8 +1150,7 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     []*pb.NVMeNamespace
 		spdk    []string
@@ -1221,8 +1159,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		start   bool
 		size    int32
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1231,8 +1168,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with invalid marshal SPDK response",
+		"valid request with invalid marshal SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1241,8 +1177,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -1251,8 +1186,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1261,8 +1195,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1271,8 +1204,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"pagination negative",
+		"pagination negative": {
 			"subsystem-test",
 			nil,
 			[]string{},
@@ -1281,8 +1213,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			false,
 			-10,
 		},
-		{
-			"pagination",
+		"pagination": {
 			"subsystem-test",
 			[]*pb.NVMeNamespace{
 				{
@@ -1297,8 +1228,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			1,
 		},
-		{
-			"pagination overflow",
+		"pagination overflow": {
 			"subsystem-test",
 			[]*pb.NVMeNamespace{
 				{
@@ -1323,8 +1253,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			1000,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"subsystem-test",
 			[]*pb.NVMeNamespace{
 				{
@@ -1349,8 +1278,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-namespace-id",
 			nil,
 			[]string{""},
@@ -1362,8 +1290,8 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1394,8 +1322,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 }
 
 func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.NVMeNamespace
 		spdk    []string
@@ -1403,8 +1330,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":17,"Namespaces":null}}`},
@@ -1412,8 +1338,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("Could not find HostNsid: %v", "22"),
 			true,
 		},
-		{
-			"valid request with invalid marshal SPDK response",
+		"valid request with invalid marshal SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1421,8 +1346,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go value of type models.NvdaControllerNvmeNamespaceListResult"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1430,8 +1354,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
@@ -1439,8 +1362,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1448,8 +1370,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"namespace-test",
 			&pb.NVMeNamespace{
 				Spec: &pb.NVMeNamespaceSpec{
@@ -1465,8 +1386,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			"",
 			true,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-namespace-id",
 			nil,
 			[]string{""},
@@ -1477,8 +1397,8 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1512,8 +1432,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
 		spdk    []string
@@ -1521,8 +1440,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -1530,8 +1448,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			fmt.Sprintf("Could not find BdevName: %v", "Malloc1"),
 			true,
 		},
-		{
-			"valid request with invalid marshal SPDK response",
+		"valid request with invalid marshal SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -1539,8 +1456,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			fmt.Sprintf("controller_nvme_get_iostat: %v", "json: cannot unmarshal array into Go value of type models.NvdaControllerNvmeStatsResult"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1548,8 +1464,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			fmt.Sprintf("controller_nvme_get_iostat: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -1557,8 +1472,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			fmt.Sprintf("controller_nvme_get_iostat: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -1566,8 +1480,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			fmt.Sprintf("controller_nvme_get_iostat: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"namespace-test",
 			&pb.VolumeStats{
 				ReadOpsCount:  12345,
@@ -1578,8 +1491,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			"",
 			true,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-namespace-id",
 			nil,
 			[]string{""},
@@ -1590,8 +1502,8 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1622,8 +1534,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
 		spdk    []string
@@ -1632,8 +1543,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 		start   bool
 		missing bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1642,8 +1552,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -1652,8 +1561,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1662,8 +1570,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1672,8 +1579,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"namespace-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1682,8 +1588,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-namespace-id",
 			nil,
 			[]string{""},
@@ -1692,8 +1597,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			false,
 			false,
 		},
-		{
-			"unknown key with missing allowed",
+		"unknown key with missing allowed": {
 			"unknown-id",
 			&emptypb.Empty{},
 			[]string{""},
@@ -1705,8 +1609,8 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1734,8 +1638,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteNVMeController(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
 		spdk    []string
@@ -1744,8 +1647,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 		start   bool
 		missing bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1754,8 +1656,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"controller-test",
 			nil,
 			[]string{""},
@@ -1764,8 +1665,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1774,8 +1674,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"controller-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1784,8 +1683,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"controller-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1794,8 +1692,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-controller-id",
 			nil,
 			[]string{""},
@@ -1804,8 +1701,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			false,
 			false,
 		},
-		{
-			"unknown key with missing allowed",
+		"unknown key with missing allowed": {
 			"unknown-id",
 			&emptypb.Empty{},
 			[]string{""},
@@ -1817,8 +1713,8 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -1846,8 +1742,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
 		spdk    []string
@@ -1856,8 +1751,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 		start   bool
 		missing bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -1866,8 +1760,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -1876,8 +1769,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -1886,8 +1778,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -1896,8 +1787,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"subsystem-test",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -1906,8 +1796,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with unknown key",
+		"valid request with unknown key": {
 			"unknown-subsystem-id",
 			nil,
 			[]string{""},
@@ -1916,8 +1805,7 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			false,
 			false,
 		},
-		{
-			"unknown key with missing allowed",
+		"unknown key with missing allowed": {
 			"unknown-id",
 			&emptypb.Empty{},
 			[]string{""},
@@ -1929,8 +1817,8 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 

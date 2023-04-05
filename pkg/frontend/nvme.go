@@ -108,6 +108,11 @@ func (s *Server) UpdateNVMeSubsystem(_ context.Context, in *pb.UpdateNVMeSubsyst
 // ListNVMeSubsystems lists NVMe Subsystems
 func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
 	log.Printf("ListNVMeSubsystems: Received from client: %v", in)
+	if in.PageSize < 0 {
+		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	var result []models.NvdaSubsystemNvmeListResult
 	err := s.rpc.Call("subsystem_nvme_list", nil, &result)
 	if err != nil {
@@ -251,6 +256,11 @@ func (s *Server) UpdateNVMeController(_ context.Context, in *pb.UpdateNVMeContro
 // ListNVMeControllers lists NVMe controllers
 func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControllersRequest) (*pb.ListNVMeControllersResponse, error) {
 	log.Printf("ListNVMeControllers: Received from client: %v", in)
+	if in.PageSize < 0 {
+		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
@@ -407,6 +417,11 @@ func (s *Server) UpdateNVMeNamespace(_ context.Context, in *pb.UpdateNVMeNamespa
 // ListNVMeNamespaces lists NVMe namespaces
 func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespacesRequest) (*pb.ListNVMeNamespacesResponse, error) {
 	log.Printf("ListNVMeNamespaces: Received from client: %v", in)
+	if in.PageSize < 0 {
+		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)

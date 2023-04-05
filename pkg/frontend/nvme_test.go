@@ -195,6 +195,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 		errCode codes.Code
 		errMsg  string
 		start   bool
+		size    int32
 	}{
 		{
 			"valid request with invalid SPDK response",
@@ -203,6 +204,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			codes.InvalidArgument,
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
+			0,
 		},
 		{
 			"valid request with empty SPDK response",
@@ -211,6 +213,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("subsystem_nvme_list: %v", "EOF"),
 			true,
+			0,
 		},
 		{
 			"valid request with ID mismatch SPDK response",
@@ -219,6 +222,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("subsystem_nvme_list: %v", "json response ID mismatch"),
 			true,
+			0,
 		},
 		{
 			"valid request with error code from SPDK response",
@@ -227,6 +231,16 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("subsystem_nvme_list: %v", "json response error: myopierr"),
 			true,
+			0,
+		},
+		{
+			"pagination negative",
+			nil,
+			[]string{},
+			codes.InvalidArgument,
+			"negative PageSize is not allowed",
+			false,
+			-10,
 		},
 		{
 			"valid request with valid SPDK response",
@@ -258,6 +272,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			codes.OK,
 			"",
 			true,
+			0,
 		},
 	}
 
@@ -271,7 +286,7 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testController.Spec.Id.Value] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespace.Spec.Id.Value] = &testNamespace
 
-			request := &pb.ListNVMeSubsystemsRequest{}
+			request := &pb.ListNVMeSubsystemsRequest{PageSize: tt.size}
 			response, err := testEnv.client.ListNVMeSubsystems(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.NvMeSubsystems, tt.out) {
@@ -638,6 +653,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		errCode codes.Code
 		errMsg  string
 		start   bool
+		size    int32
 	}{
 		{
 			"valid request with invalid SPDK response",
@@ -647,6 +663,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.InvalidArgument,
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
+			0,
 		},
 		{
 			"valid request with empty SPDK response",
@@ -656,6 +673,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "EOF"),
 			true,
+			0,
 		},
 		{
 			"valid request with ID mismatch SPDK response",
@@ -665,6 +683,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
 			true,
+			0,
 		},
 		{
 			"valid request with error code from SPDK response",
@@ -674,6 +693,17 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
 			true,
+			0,
+		},
+		{
+			"pagination negative",
+			"subsystem-test",
+			nil,
+			[]string{},
+			codes.InvalidArgument,
+			"negative PageSize is not allowed",
+			false,
+			-10,
 		},
 		{
 			"valid request with valid SPDK response",
@@ -699,6 +729,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.OK,
 			"",
 			true,
+			0,
 		},
 		{
 			"valid request with unknown key",
@@ -708,6 +739,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			codes.NotFound,
 			fmt.Sprintf("unable to find key %v", "unknown-subsystem-id"),
 			false,
+			0,
 		},
 	}
 
@@ -721,7 +753,7 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testController.Spec.Id.Value] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespace.Spec.Id.Value] = &testNamespace
 
-			request := &pb.ListNVMeControllersRequest{Parent: tt.in}
+			request := &pb.ListNVMeControllersRequest{Parent: tt.in, PageSize: tt.size}
 			response, err := testEnv.client.ListNVMeControllers(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.NvMeControllers, tt.out) {
@@ -1095,6 +1127,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		errCode codes.Code
 		errMsg  string
 		start   bool
+		size    int32
 	}{
 		{
 			"valid request with invalid SPDK response",
@@ -1104,6 +1137,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.InvalidArgument,
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
+			0,
 		},
 		{
 			"valid request with invalid marshal SPDK response",
@@ -1113,6 +1147,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json: cannot unmarshal array into Go value of type models.NvdaControllerNvmeNamespaceListResult"),
 			true,
+			0,
 		},
 		{
 			"valid request with empty SPDK response",
@@ -1122,6 +1157,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "EOF"),
 			true,
+			0,
 		},
 		{
 			"valid request with ID mismatch SPDK response",
@@ -1131,6 +1167,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response ID mismatch"),
 			true,
+			0,
 		},
 		{
 			"valid request with error code from SPDK response",
@@ -1140,6 +1177,17 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_nvme_namespace_list: %v", "json response error: myopierr"),
 			true,
+			0,
+		},
+		{
+			"pagination negative",
+			"subsystem-test",
+			nil,
+			[]string{},
+			codes.InvalidArgument,
+			"negative PageSize is not allowed",
+			false,
+			-10,
 		},
 		{
 			"valid request with valid SPDK response",
@@ -1165,6 +1213,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.OK,
 			"",
 			true,
+			0,
 		},
 		{
 			"valid request with unknown key",
@@ -1174,6 +1223,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			codes.NotFound,
 			fmt.Sprintf("unable to find key %v", "unknown-namespace-id"),
 			false,
+			0,
 		},
 	}
 
@@ -1187,7 +1237,7 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testController.Spec.Id.Value] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespace.Spec.Id.Value] = &testNamespace
 
-			request := &pb.ListNVMeNamespacesRequest{Parent: tt.in}
+			request := &pb.ListNVMeNamespacesRequest{Parent: tt.in, PageSize: tt.size}
 			response, err := testEnv.client.ListNVMeNamespaces(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.NvMeNamespaces, tt.out) {

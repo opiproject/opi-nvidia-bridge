@@ -135,6 +135,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 		errCode codes.Code
 		errMsg  string
 		start   bool
+		size    int32
 	}{
 		{
 			"valid request with invalid SPDK response",
@@ -144,6 +145,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			codes.InvalidArgument,
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
+			0,
 		},
 		{
 			"valid request with empty SPDK response",
@@ -153,6 +155,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "EOF"),
 			true,
+			0,
 		},
 		{
 			"valid request with ID mismatch SPDK response",
@@ -162,6 +165,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
 			true,
+			0,
 		},
 		{
 			"valid request with error code from SPDK response",
@@ -171,6 +175,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			codes.Unknown,
 			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
 			true,
+			0,
+		},
+		{
+			"pagination negative",
+			"subsystem-test",
+			nil,
+			[]string{},
+			codes.InvalidArgument,
+			"negative PageSize is not allowed",
+			false,
+			-10,
 		},
 		{
 			"valid request with valid SPDK response",
@@ -197,6 +212,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			codes.OK,
 			"",
 			true,
+			0,
 		},
 	}
 
@@ -206,7 +222,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			request := &pb.ListVirtioBlksRequest{Parent: tt.in}
+			request := &pb.ListVirtioBlksRequest{Parent: tt.in, PageSize: tt.size}
 			response, err := testEnv.client.ListVirtioBlks(testEnv.ctx, request)
 
 			if response != nil {

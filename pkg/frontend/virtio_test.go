@@ -80,8 +80,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      *pb.VirtioBlk
 		out     *pb.VirtioBlk
 		spdk    []string
@@ -89,8 +88,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"unimplemented method",
+		"unimplemented method": {
 			&pb.VirtioBlk{},
 			nil,
 			[]string{""},
@@ -101,8 +99,8 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -127,8 +125,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_ListVirtioBlks(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     []*pb.VirtioBlk
 		spdk    []string
@@ -137,8 +134,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 		start   bool
 		size    int32
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -147,8 +143,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{""},
@@ -157,8 +152,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -167,8 +161,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -177,8 +170,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			0,
 		},
-		{
-			"pagination negative",
+		"pagination negative": {
 			"subsystem-test",
 			nil,
 			[]string{},
@@ -187,8 +179,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			false,
 			-10,
 		},
-		{
-			"pagination",
+		"pagination": {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
@@ -203,8 +194,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			1,
 		},
-		{
-			"pagination overflow",
+		"pagination overflow": {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
@@ -230,8 +220,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			true,
 			1000,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
@@ -260,8 +249,8 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -289,8 +278,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 }
 
 func TestFrontEnd_GetVirtioBlk(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.VirtioBlk
 		spdk    []string
@@ -298,8 +286,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -307,8 +294,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			fmt.Sprintf("Could not find Controller: %v", "virtio-blk-42"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{""},
@@ -316,8 +302,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
@@ -325,8 +310,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
@@ -334,8 +318,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"virtio-blk-42",
 			&pb.VirtioBlk{
 				Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
@@ -350,8 +333,8 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -382,8 +365,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_VirtioBlkStats(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
 		spdk    []string
@@ -391,8 +373,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -400,8 +381,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			fmt.Sprintf("Could not find Controller: %v", "namespace-test"),
 			true,
 		},
-		{
-			"valid request with invalid marshal SPDK response",
+		"valid request with invalid marshal SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -409,8 +389,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json: cannot unmarshal array into Go value of type models.NvdaControllerNvmeStatsResult"),
 			true,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{""},
@@ -418,8 +397,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "EOF"),
 			true,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":{"controllers":[{"name":"NvmeEmu0pf1","bdevs":[]}]}}`},
@@ -427,8 +405,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json response ID mismatch"),
 			true,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"namespace-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"}}`},
@@ -436,8 +413,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			fmt.Sprintf("controller_virtio_blk_get_iostat: %v", "json response error: myopierr"),
 			true,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"Malloc0",
 			&pb.VolumeStats{
 				ReadOpsCount:  12345,
@@ -451,8 +427,8 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
@@ -481,8 +457,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
-	tests := []struct {
-		name    string
+	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
 		spdk    []string
@@ -491,8 +466,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 		start   bool
 		missing bool
 	}{
-		{
-			"valid request with invalid SPDK response",
+		"valid request with invalid SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
@@ -501,8 +475,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with empty SPDK response",
+		"valid request with empty SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{""},
@@ -511,8 +484,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with ID mismatch SPDK response",
+		"valid request with ID mismatch SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
@@ -521,8 +493,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with error code from SPDK response",
+		"valid request with error code from SPDK response": {
 			"virtio-blk-42",
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
@@ -531,8 +502,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"valid request with valid SPDK response",
+		"valid request with valid SPDK response": {
 			"virtio-blk-42",
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
@@ -541,8 +511,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			true,
 			false,
 		},
-		{
-			"unknown key with missing allowed",
+		"unknown key with missing allowed": {
 			"unknown-id",
 			&emptypb.Empty{},
 			[]string{""},
@@ -554,8 +523,8 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 	}
 
 	// run tests
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
+	for name, tt := range tests {
+		t.Run(name, func(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 

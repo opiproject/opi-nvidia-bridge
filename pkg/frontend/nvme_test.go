@@ -243,6 +243,24 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			-10,
 		},
 		{
+			"pagination",
+			[]*pb.NVMeSubsystem{
+				{
+					Spec: &pb.NVMeSubsystemSpec{
+						Nqn:          "nqn.2022-09.io.spdk:opi1",
+						SerialNumber: "OpiSerialNumber1",
+						ModelNumber:  "OpiModelNumber1",
+					},
+				},
+			},
+			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`},
+			codes.OK,
+			"",
+			true,
+			1,
+		},
+		{
 			"pagination overflow",
 			[]*pb.NVMeSubsystem{
 				{
@@ -736,6 +754,22 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			"negative PageSize is not allowed",
 			false,
 			-10,
+		},
+		{
+			"pagination",
+			"subsystem-test",
+			[]*pb.NVMeController{
+				{
+					Spec: &pb.NVMeControllerSpec{
+						NvmeControllerId: 1,
+					},
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 1, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 1, "pci_bdf": "ca:00.3"},{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 2, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 2, "pci_bdf": "ca:00.4"},{"subnqn": "nqn.2022-09.io.spdk:opi3", "cntlid": 3, "name": "NvmeEmu0pf1", "type": "nvme", "pci_index": 3, "pci_bdf": "ca:00.5"}]}`},
+			codes.OK,
+			"",
+			true,
+			1,
 		},
 		{
 			"pagination overflow",
@@ -1246,6 +1280,22 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			"negative PageSize is not allowed",
 			false,
 			-10,
+		},
+		{
+			"pagination",
+			"subsystem-test",
+			[]*pb.NVMeNamespace{
+				{
+					Spec: &pb.NVMeNamespaceSpec{
+						HostNsid: 11,
+					},
+				},
+			},
+			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf1", "cntlid": 1, "Namespaces": [{"nsid": 11, "bdev": "Malloc0", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 12, "bdev": "Malloc1", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 13, "bdev": "Malloc2", "bdev_type": "spdk", "qn": "", "protocol": ""}]}}`},
+			codes.OK,
+			"",
+			true,
+			1,
 		},
 		{
 			"pagination overflow",

@@ -188,6 +188,22 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			-10,
 		},
 		{
+			"pagination",
+			"subsystem-test",
+			[]*pb.VirtioBlk{
+				{
+					Id:       &pc.ObjectKey{Value: "VblkEmu0pf0"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
+			},
+			[]string{`{"jsonrpc":"2.0","id":%d,"result":[{"name":"VblkEmu0pf0","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"virtio-blk-42","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf2","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"subnqn":"nqn.2020-12.mlnx.snap","cntlid":0,"name":"NvmeEmu0pf0","emulation_manager":"mlx5_0","type":"nvme","pci_index":0,"pci_bdf":"ca:00.2"}],"error":{"code":0,"message":""}}`},
+			codes.OK,
+			"",
+			true,
+			1,
+		},
+		{
 			"pagination overflow",
 			"subsystem-test",
 			[]*pb.VirtioBlk{

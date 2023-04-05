@@ -120,6 +120,10 @@ func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystems
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if in.PageSize > 0 && int(in.PageSize) < len(result) {
+		log.Printf("Limiting result to: %d", in.PageSize)
+		result = result[:in.PageSize]
+	}
 	Blobarray := make([]*pb.NVMeSubsystem, len(result))
 	for i := range result {
 		r := &result[i]
@@ -274,6 +278,10 @@ func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControlle
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if in.PageSize > 0 && int(in.PageSize) < len(result) {
+		log.Printf("Limiting result to: %d", in.PageSize)
+		result = result[:in.PageSize]
+	}
 	Blobarray := make([]*pb.NVMeController, len(result))
 	for i := range result {
 		r := &result[i]
@@ -440,6 +448,10 @@ func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespaces
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	if in.PageSize > 0 && int(in.PageSize) < len(result.Namespaces) {
+		log.Printf("Limiting result to: %d", in.PageSize)
+		result.Namespaces = result.Namespaces[:in.PageSize]
+	}
 	Blobarray := make([]*pb.NVMeNamespace, len(result.Namespaces))
 	for i := range result.Namespaces {
 		r := &result.Namespaces[i]

@@ -6,12 +6,14 @@
 package frontend
 
 import (
+	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
 
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
@@ -128,11 +130,10 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			request := &pb.CreateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
 			response, err := testEnv.client.CreateNVMeSubsystem(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
-					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
-				}
-				if !reflect.DeepEqual(response.Status, tt.out.Status) {
-					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				mtt, _ := proto.Marshal(tt.out)
+				mResponse, _ := proto.Marshal(response)
+				if !bytes.Equal(mtt, mResponse) {
+					t.Error("response: expected", tt.out, "received", response)
 				}
 			}
 
@@ -629,11 +630,10 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			request := &pb.CreateNVMeControllerRequest{NvMeController: tt.in}
 			response, err := testEnv.client.CreateNVMeController(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
-					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
-				}
-				if !reflect.DeepEqual(response.Status, tt.out.Status) {
-					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				mtt, _ := proto.Marshal(tt.out)
+				mResponse, _ := proto.Marshal(response)
+				if !bytes.Equal(mtt, mResponse) {
+					t.Error("response: expected", tt.out, "received", response)
 				}
 			}
 
@@ -1138,11 +1138,10 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			request := &pb.CreateNVMeNamespaceRequest{NvMeNamespace: tt.in}
 			response, err := testEnv.client.CreateNVMeNamespace(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
-					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
-				}
-				if !reflect.DeepEqual(response.Status, tt.out.Status) {
-					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
+				mtt, _ := proto.Marshal(tt.out)
+				mResponse, _ := proto.Marshal(response)
+				if !bytes.Equal(mtt, mResponse) {
+					t.Error("response: expected", tt.out, "received", response)
 				}
 			}
 

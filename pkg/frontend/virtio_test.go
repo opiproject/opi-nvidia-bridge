@@ -27,6 +27,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 		out         *pb.VirtioBlk
 		spdk        []string
 		expectedErr error
+		exist       bool
 	}{
 		"valid virtio-blk creation": {
 			in:          &testVirtioCtrl,

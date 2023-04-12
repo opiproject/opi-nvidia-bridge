@@ -18,6 +18,7 @@ type Server struct {
 	Controllers map[string]*pb.NVMeController
 	Namespaces  map[string]*pb.NVMeNamespace
 	VirtioCtrls map[string]*pb.VirtioBlk
+	Pagination  map[string]int
 	rpc         server.JSONRPC
 }
 
@@ -28,6 +29,7 @@ func NewServer(jsonRPC server.JSONRPC) *Server {
 		Controllers: make(map[string]*pb.NVMeController),
 		Namespaces:  make(map[string]*pb.NVMeNamespace),
 		VirtioCtrls: make(map[string]*pb.VirtioBlk),
+		Pagination:  make(map[string]int),
 		rpc:         jsonRPC,
 	}
 }

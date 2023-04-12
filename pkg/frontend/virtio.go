@@ -13,6 +13,7 @@ import (
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
+	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
@@ -103,10 +104,10 @@ func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkReques
 // ListVirtioBlks lists Virtio block devices
 func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
 	log.Printf("ListVirtioBlks: Received from client: %v", in)
-	if in.PageSize < 0 {
-		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
-		log.Printf("error: %v", err)
-		return nil, err
+	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
+	if perr != nil {
+		log.Printf("error: %v", perr)
+		return nil, perr
 	}
 	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
@@ -116,7 +117,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result to: %d", in.PageSize)
+		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
 		result = result[:in.PageSize]
 	}
 	Blobarray := make([]*pb.VirtioBlk, len(result))

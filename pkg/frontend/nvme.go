@@ -16,6 +16,7 @@ import (
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	spdk "github.com/opiproject/opi-spdk-bridge/pkg/models"
+	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
@@ -108,10 +109,10 @@ func (s *Server) UpdateNVMeSubsystem(_ context.Context, in *pb.UpdateNVMeSubsyst
 // ListNVMeSubsystems lists NVMe Subsystems
 func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystemsRequest) (*pb.ListNVMeSubsystemsResponse, error) {
 	log.Printf("ListNVMeSubsystems: Received from client: %v", in)
-	if in.PageSize < 0 {
-		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
-		log.Printf("error: %v", err)
-		return nil, err
+	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
+	if perr != nil {
+		log.Printf("error: %v", perr)
+		return nil, perr
 	}
 	var result []models.NvdaSubsystemNvmeListResult
 	err := s.rpc.Call("subsystem_nvme_list", nil, &result)
@@ -121,7 +122,7 @@ func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystems
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result to: %d", in.PageSize)
+		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
 		result = result[:in.PageSize]
 	}
 	Blobarray := make([]*pb.NVMeSubsystem, len(result))
@@ -260,10 +261,10 @@ func (s *Server) UpdateNVMeController(_ context.Context, in *pb.UpdateNVMeContro
 // ListNVMeControllers lists NVMe controllers
 func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControllersRequest) (*pb.ListNVMeControllersResponse, error) {
 	log.Printf("ListNVMeControllers: Received from client: %v", in)
-	if in.PageSize < 0 {
-		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
-		log.Printf("error: %v", err)
-		return nil, err
+	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
+	if perr != nil {
+		log.Printf("error: %v", perr)
+		return nil, perr
 	}
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
@@ -279,7 +280,7 @@ func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControlle
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result to: %d", in.PageSize)
+		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
 		result = result[:in.PageSize]
 	}
 	Blobarray := make([]*pb.NVMeController, len(result))
@@ -425,10 +426,10 @@ func (s *Server) UpdateNVMeNamespace(_ context.Context, in *pb.UpdateNVMeNamespa
 // ListNVMeNamespaces lists NVMe namespaces
 func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespacesRequest) (*pb.ListNVMeNamespacesResponse, error) {
 	log.Printf("ListNVMeNamespaces: Received from client: %v", in)
-	if in.PageSize < 0 {
-		err := status.Error(codes.InvalidArgument, "negative PageSize is not allowed")
-		log.Printf("error: %v", err)
-		return nil, err
+	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
+	if perr != nil {
+		log.Printf("error: %v", perr)
+		return nil, perr
 	}
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
@@ -449,7 +450,7 @@ func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespaces
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if in.PageSize > 0 && int(in.PageSize) < len(result.Namespaces) {
-		log.Printf("Limiting result to: %d", in.PageSize)
+		log.Printf("Limiting result len(%d) to [%d:%d]", len(result.Namespaces), offset, size)
 		result.Namespaces = result.Namespaces[:in.PageSize]
 	}
 	Blobarray := make([]*pb.NVMeNamespace, len(result.Namespaces))

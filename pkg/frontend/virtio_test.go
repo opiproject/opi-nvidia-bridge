@@ -134,6 +134,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 		errMsg  string
 		start   bool
 		size    int32
+		token   string
 	}{
 		"valid request with invalid SPDK response": {
 			"subsystem-test",
@@ -143,6 +144,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
 			true,
 			0,
+			"",
 		},
 		"valid request with empty SPDK response": {
 			"subsystem-test",
@@ -152,6 +154,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "EOF"),
 			true,
 			0,
+			"",
 		},
 		"valid request with ID mismatch SPDK response": {
 			"subsystem-test",
@@ -161,6 +164,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response ID mismatch"),
 			true,
 			0,
+			"",
 		},
 		"valid request with error code from SPDK response": {
 			"subsystem-test",
@@ -170,6 +174,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			fmt.Sprintf("controller_list: %v", "json response error: myopierr"),
 			true,
 			0,
+			"",
 		},
 		"pagination negative": {
 			"subsystem-test",
@@ -179,6 +184,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"negative PageSize is not allowed",
 			false,
 			-10,
+			"",
+		},
+		"pagination error": {
+			"subsystem-test",
+			nil,
+			[]string{},
+			codes.NotFound,
+			fmt.Sprintf("unable to find pagination token %s", "unknown-pagination-token"),
+			false,
+			0,
+			"unknown-pagination-token",
 		},
 		"pagination": {
 			"subsystem-test",
@@ -194,6 +210,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"",
 			true,
 			1,
+			"",
 		},
 		"pagination overflow": {
 			"subsystem-test",
@@ -220,6 +237,23 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"",
 			true,
 			1000,
+			"",
+		},
+		"pagination offset": {
+			"subsystem-test",
+			[]*pb.VirtioBlk{
+				{
+					Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
+			},
+			[]string{`{"jsonrpc":"2.0","id":%d,"result":[{"name":"VblkEmu0pf0","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"virtio-blk-42","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf2","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"subnqn":"nqn.2020-12.mlnx.snap","cntlid":0,"name":"NvmeEmu0pf0","emulation_manager":"mlx5_0","type":"nvme","pci_index":0,"pci_bdf":"ca:00.2"}],"error":{"code":0,"message":""}}`},
+			codes.OK,
+			"",
+			true,
+			1,
+			"existing-pagination-token",
 		},
 		"valid request with valid SPDK response": {
 			"subsystem-test",
@@ -246,6 +280,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"",
 			true,
 			0,
+			"",
 		},
 	}
 
@@ -255,7 +290,9 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			request := &pb.ListVirtioBlksRequest{Parent: tt.in, PageSize: tt.size}
+			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
+
+			request := &pb.ListVirtioBlksRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListVirtioBlks(testEnv.ctx, request)
 
 			if response != nil {

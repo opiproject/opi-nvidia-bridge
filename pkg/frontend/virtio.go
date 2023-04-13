@@ -15,6 +15,7 @@ import (
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
+	"github.com/google/uuid"
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -116,9 +117,12 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
-		result = result[:in.PageSize]
+	token, hasMoreElements := "", false
+	log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
+	result, hasMoreElements = server.LimitPagination(result, offset, size)
+	if hasMoreElements {
+		token = uuid.New().String()
+		s.Pagination[token] = offset + size
 	}
 	Blobarray := make([]*pb.VirtioBlk, len(result))
 	for i := range result {

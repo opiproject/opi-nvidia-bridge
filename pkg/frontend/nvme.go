@@ -18,6 +18,7 @@ import (
 	spdk "github.com/opiproject/opi-spdk-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
+	"github.com/google/uuid"
 	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -121,9 +122,12 @@ func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystems
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
-		result = result[:in.PageSize]
+	token, hasMoreElements := "", false
+	log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
+	result, hasMoreElements = server.LimitPagination(result, offset, size)
+	if hasMoreElements {
+		token = uuid.New().String()
+		s.Pagination[token] = offset + size
 	}
 	Blobarray := make([]*pb.NVMeSubsystem, len(result))
 	for i := range result {
@@ -279,9 +283,12 @@ func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControlle
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if in.PageSize > 0 && int(in.PageSize) < len(result) {
-		log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
-		result = result[:in.PageSize]
+	token, hasMoreElements := "", false
+	log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
+	result, hasMoreElements = server.LimitPagination(result, offset, size)
+	if hasMoreElements {
+		token = uuid.New().String()
+		s.Pagination[token] = offset + size
 	}
 	Blobarray := make([]*pb.NVMeController, len(result))
 	for i := range result {
@@ -449,9 +456,12 @@ func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespaces
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
-	if in.PageSize > 0 && int(in.PageSize) < len(result.Namespaces) {
-		log.Printf("Limiting result len(%d) to [%d:%d]", len(result.Namespaces), offset, size)
-		result.Namespaces = result.Namespaces[:in.PageSize]
+	token, hasMoreElements := "", false
+	log.Printf("Limiting result len(%d) to [%d:%d]", len(result.Namespaces), offset, size)
+	result.Namespaces, hasMoreElements = server.LimitPagination(result.Namespaces, offset, size)
+	if hasMoreElements {
+		token = uuid.New().String()
+		s.Pagination[token] = offset + size
 	}
 	Blobarray := make([]*pb.NVMeNamespace, len(result.Namespaces))
 	for i := range result.Namespaces {

@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/opiproject/opi-api v0.0.0-20230414115038-99f54163f0e6
 	github.com/opiproject/opi-smbios-bridge v0.1.2
-	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230412161703-19b7b641c179
+	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230415162453-ab13b2a33b0e
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	google.golang.org/grpc v1.54.0

@@ -7,8 +7,8 @@
 package frontend
 
 import (
+	"github.com/opiproject/gospdk/spdk"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
-	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 )
 
 // Server contains frontend related OPI services
@@ -19,11 +19,11 @@ type Server struct {
 	Namespaces  map[string]*pb.NVMeNamespace
 	VirtioCtrls map[string]*pb.VirtioBlk
 	Pagination  map[string]int
-	rpc         server.JSONRPC
+	rpc         spdk.JSONRPC
 }
 
 // NewServer creates initialized instance of NVMe server
-func NewServer(jsonRPC server.JSONRPC) *Server {
+func NewServer(jsonRPC spdk.JSONRPC) *Server {
 	return &Server{
 		Subsystems:  make(map[string]*pb.NVMeSubsystem),
 		Controllers: make(map[string]*pb.NVMeController),

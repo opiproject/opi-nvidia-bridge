@@ -12,10 +12,11 @@ import (
 	"log"
 	"strconv"
 
+	"github.com/opiproject/gospdk/spdk"
+
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
-	spdk "github.com/opiproject/opi-spdk-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"

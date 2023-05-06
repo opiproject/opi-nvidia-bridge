@@ -10,7 +10,7 @@ require (
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230506114628-11e208809f15
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
-	google.golang.org/grpc v1.54.0
+	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )
 

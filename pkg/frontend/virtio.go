@@ -9,6 +9,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
@@ -26,6 +27,12 @@ var (
 	errFailedSpdkCall           = status.Error(codes.Unknown, "Failed to execute SPDK call")
 	errUnexpectedSpdkCallResult = status.Error(codes.FailedPrecondition, "Unexpected SPDK call result.")
 )
+
+func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
+	sort.Slice(virtioBlks, func(i int, j int) bool {
+		return virtioBlks[i].Id.Value < virtioBlks[j].Id.Value
+	})
+}
 
 // CreateVirtioBlk creates a Virtio block device
 func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
@@ -138,6 +145,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}
 		}
 	}
+	sortVirtioBlks(Blobarray)
 	return &pb.ListVirtioBlksResponse{VirtioBlks: Blobarray}, nil
 }
 

@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"sort"
 	"strconv"
 
 	"github.com/opiproject/gospdk/spdk"
@@ -25,6 +26,24 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
+
+func sortNVMeSubsystems(subsystems []*pb.NVMeSubsystem) {
+	sort.Slice(subsystems, func(i int, j int) bool {
+		return subsystems[i].Spec.Nqn < subsystems[j].Spec.Nqn
+	})
+}
+
+func sortNVMeControllers(controllers []*pb.NVMeController) {
+	sort.Slice(controllers, func(i int, j int) bool {
+		return controllers[i].Spec.Id.Value < controllers[j].Spec.Id.Value
+	})
+}
+
+func sortNVMeNamespaces(namespaces []*pb.NVMeNamespace) {
+	sort.Slice(namespaces, func(i int, j int) bool {
+		return namespaces[i].Spec.HostNsid < namespaces[j].Spec.HostNsid
+	})
+}
 
 // CreateNVMeSubsystem creates an NVMe Subsystem
 func (s *Server) CreateNVMeSubsystem(_ context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
@@ -139,6 +158,7 @@ func (s *Server) ListNVMeSubsystems(_ context.Context, in *pb.ListNVMeSubsystems
 		r := &result[i]
 		Blobarray[i] = &pb.NVMeSubsystem{Spec: &pb.NVMeSubsystemSpec{Nqn: r.Nqn, SerialNumber: r.SerialNumber, ModelNumber: r.ModelNumber}}
 	}
+	sortNVMeSubsystems(Blobarray)
 	return &pb.ListNVMeSubsystemsResponse{NvMeSubsystems: Blobarray}, nil
 }
 
@@ -306,6 +326,7 @@ func (s *Server) ListNVMeControllers(_ context.Context, in *pb.ListNVMeControlle
 			Blobarray[i] = &pb.NVMeController{Spec: &pb.NVMeControllerSpec{NvmeControllerId: int32(r.Cntlid)}}
 		}
 	}
+	sortNVMeControllers(Blobarray)
 	return &pb.ListNVMeControllersResponse{NvMeControllers: Blobarray}, nil
 }
 
@@ -481,6 +502,7 @@ func (s *Server) ListNVMeNamespaces(_ context.Context, in *pb.ListNVMeNamespaces
 		r := &result.Namespaces[i]
 		Blobarray[i] = &pb.NVMeNamespace{Spec: &pb.NVMeNamespaceSpec{HostNsid: int32(r.Nsid)}}
 	}
+	sortNVMeNamespaces(Blobarray)
 	return &pb.ListNVMeNamespacesResponse{NvMeNamespaces: Blobarray}, nil
 }
 

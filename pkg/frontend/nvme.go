@@ -49,9 +49,12 @@ func sortNVMeNamespaces(namespaces []*pb.NVMeNamespace) {
 func (s *Server) CreateNVMeSubsystem(_ context.Context, in *pb.CreateNVMeSubsystemRequest) (*pb.NVMeSubsystem, error) {
 	log.Printf("CreateNVMeSubsystem: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
+	name := uuid.New().String()
 	if in.NvMeSubsystemId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeSubsystemId, in.NvMeSubsystem.Spec.Id.Value)
+		name = in.NvMeSubsystemId
 	}
+	in.NvMeSubsystem.Spec.Id.Value = name
 	// idempotent API when called with same key, should return same object
 	subsys, ok := s.Subsystems[in.NvMeSubsystem.Spec.Id.Value]
 	if ok {
@@ -199,9 +202,12 @@ func (s *Server) NVMeSubsystemStats(_ context.Context, in *pb.NVMeSubsystemStats
 func (s *Server) CreateNVMeController(_ context.Context, in *pb.CreateNVMeControllerRequest) (*pb.NVMeController, error) {
 	log.Printf("CreateNVMeController: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
+	name := uuid.New().String()
 	if in.NvMeControllerId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeControllerId, in.NvMeController.Spec.Id.Value)
+		name = in.NvMeControllerId
 	}
+	in.NvMeController.Spec.Id.Value = name
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.Controllers[in.NvMeController.Spec.Id.Value]
 	if ok {
@@ -367,9 +373,12 @@ func (s *Server) NVMeControllerStats(_ context.Context, in *pb.NVMeControllerSta
 func (s *Server) CreateNVMeNamespace(_ context.Context, in *pb.CreateNVMeNamespaceRequest) (*pb.NVMeNamespace, error) {
 	log.Printf("CreateNVMeNamespace: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
+	name := uuid.New().String()
 	if in.NvMeNamespaceId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeNamespaceId, in.NvMeNamespace.Spec.Id.Value)
+		name = in.NvMeNamespaceId
 	}
+	in.NvMeNamespace.Spec.Id.Value = name
 	// idempotent API when called with same key, should return same object
 	namespace, ok := s.Namespaces[in.NvMeNamespace.Spec.Id.Value]
 	if ok {

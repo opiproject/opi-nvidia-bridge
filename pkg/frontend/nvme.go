@@ -35,7 +35,7 @@ func sortNVMeSubsystems(subsystems []*pb.NVMeSubsystem) {
 
 func sortNVMeControllers(controllers []*pb.NVMeController) {
 	sort.Slice(controllers, func(i int, j int) bool {
-		return controllers[i].Spec.Id.Value < controllers[j].Spec.Id.Value
+		return controllers[i].Spec.NvmeControllerId < controllers[j].Spec.NvmeControllerId
 	})
 }
 

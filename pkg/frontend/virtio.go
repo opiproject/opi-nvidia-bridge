@@ -135,14 +135,15 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		token = uuid.New().String()
 		s.Pagination[token] = offset + size
 	}
-	Blobarray := make([]*pb.VirtioBlk, len(result))
+	Blobarray := []*pb.VirtioBlk{}
 	for i := range result {
 		r := &result[i]
 		if r.Type == "virtio_blk" {
-			Blobarray[i] = &pb.VirtioBlk{
+			ctrl := &pb.VirtioBlk{
 				Id:       &pc.ObjectKey{Value: r.Name},
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}
+			Blobarray = append(Blobarray, ctrl)
 		}
 	}
 	sortVirtioBlks(Blobarray)

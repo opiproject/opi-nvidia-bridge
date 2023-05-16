@@ -221,16 +221,15 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
-					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
-					VolumeId: &pc.ObjectKey{Value: "TBD"},
-				},
-				{
 					Id:       &pc.ObjectKey{Value: "VblkEmu0pf2"},
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
-				{},
+				{
+					Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
 			},
 			[]string{`{"jsonrpc":"2.0","id":%d,"result":[{"name":"VblkEmu0pf0","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"virtio-blk-42","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf2","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"subnqn":"nqn.2020-12.mlnx.snap","cntlid":0,"name":"NvmeEmu0pf0","emulation_manager":"mlx5_0","type":"nvme","pci_index":0,"pci_bdf":"ca:00.2"}],"error":{"code":0,"message":""}}`},
 			codes.OK,
@@ -264,16 +263,15 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
-					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
-					VolumeId: &pc.ObjectKey{Value: "TBD"},
-				},
-				{
 					Id:       &pc.ObjectKey{Value: "VblkEmu0pf2"},
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
-				{},
+				{
+					Id:       &pc.ObjectKey{Value: "virtio-blk-42"},
+					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
+					VolumeId: &pc.ObjectKey{Value: "TBD"},
+				},
 			},
 			[]string{`{"jsonrpc":"2.0","id":%d,"result":[{"name":"VblkEmu0pf0","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"virtio-blk-42","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"name":"VblkEmu0pf2","emulation_manager":"mlx5_0","type":"virtio_blk","pci_index":0,"pci_bdf":"ca:00.4"},{"subnqn":"nqn.2020-12.mlnx.snap","cntlid":0,"name":"NvmeEmu0pf0","emulation_manager":"mlx5_0","type":"nvme","pci_index":0,"pci_bdf":"ca:00.2"}],"error":{"code":0,"message":""}}`},
 			codes.OK,

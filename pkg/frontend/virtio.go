@@ -40,10 +40,10 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	// see https://google.aip.dev/133#user-specified-ids
 	name := uuid.New().String()
 	if in.VirtioBlkId != "" {
-		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Id.Value)
+		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Id)
 		name = in.VirtioBlkId
 	}
-	in.VirtioBlk.Id.Value = name
+	in.VirtioBlk.Id = &pc.ObjectKey{Value: name}
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.VirtioCtrls[in.VirtioBlk.Id.Value]
 	if ok {

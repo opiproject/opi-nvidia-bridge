@@ -15,7 +15,6 @@ import (
 
 	"github.com/opiproject/gospdk/spdk"
 
-	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
@@ -51,14 +50,14 @@ func (s *Server) CreateNVMeSubsystem(_ context.Context, in *pb.CreateNVMeSubsyst
 	// see https://google.aip.dev/133#user-specified-ids
 	name := uuid.New().String()
 	if in.NvMeSubsystemId != "" {
-		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeSubsystemId, in.NvMeSubsystem.Spec.Id)
+		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeSubsystemId, in.NvMeSubsystem.Spec.Name)
 		name = in.NvMeSubsystemId
 	}
-	in.NvMeSubsystem.Spec.Id = &pc.ObjectKey{Value: name}
+	in.NvMeSubsystem.Spec.Name = name
 	// idempotent API when called with same key, should return same object
-	subsys, ok := s.Subsystems[in.NvMeSubsystem.Spec.Id.Value]
+	subsys, ok := s.Subsystems[in.NvMeSubsystem.Spec.Name]
 	if ok {
-		log.Printf("Already existing NVMeSubsystem with id %v", in.NvMeSubsystem.Spec.Id.Value)
+		log.Printf("Already existing NVMeSubsystem with id %v", in.NvMeSubsystem.Spec.Name)
 		return subsys, nil
 	}
 	// not found, so create a new one
@@ -73,7 +72,7 @@ func (s *Server) CreateNVMeSubsystem(_ context.Context, in *pb.CreateNVMeSubsyst
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	s.Subsystems[in.NvMeSubsystem.Spec.Id.Value] = in.NvMeSubsystem
+	s.Subsystems[in.NvMeSubsystem.Spec.Name] = in.NvMeSubsystem
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
 		msg := fmt.Sprintf("Could not create NQN: %s", in.NvMeSubsystem.Spec.Nqn)
@@ -124,7 +123,7 @@ func (s *Server) DeleteNVMeSubsystem(_ context.Context, in *pb.DeleteNVMeSubsyst
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	delete(s.Subsystems, subsys.Spec.Id.Value)
+	delete(s.Subsystems, subsys.Spec.Name)
 	return &emptypb.Empty{}, nil
 }
 
@@ -204,14 +203,14 @@ func (s *Server) CreateNVMeController(_ context.Context, in *pb.CreateNVMeContro
 	// see https://google.aip.dev/133#user-specified-ids
 	name := uuid.New().String()
 	if in.NvMeControllerId != "" {
-		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeControllerId, in.NvMeController.Spec.Id)
+		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeControllerId, in.NvMeController.Spec.Name)
 		name = in.NvMeControllerId
 	}
-	in.NvMeController.Spec.Id = &pc.ObjectKey{Value: name}
+	in.NvMeController.Spec.Name = name
 	// idempotent API when called with same key, should return same object
-	controller, ok := s.Controllers[in.NvMeController.Spec.Id.Value]
+	controller, ok := s.Controllers[in.NvMeController.Spec.Name]
 	if ok {
-		log.Printf("Already existing NVMeController with id %v", in.NvMeController.Spec.Id.Value)
+		log.Printf("Already existing NVMeController with id %v", in.NvMeController.Spec.Name)
 		return controller, nil
 	}
 	// not found, so create a new one
@@ -238,14 +237,14 @@ func (s *Server) CreateNVMeController(_ context.Context, in *pb.CreateNVMeContro
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if result.Cntlid < 0 {
-		msg := fmt.Sprintf("Could not create CTRL: %s", in.NvMeController.Spec.Id.Value)
+		msg := fmt.Sprintf("Could not create CTRL: %s", in.NvMeController.Spec.Name)
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	s.Controllers[in.NvMeController.Spec.Id.Value] = in.NvMeController
-	s.Controllers[in.NvMeController.Spec.Id.Value].Spec.NvmeControllerId = int32(result.Cntlid)
-	s.Controllers[in.NvMeController.Spec.Id.Value].Status = &pb.NVMeControllerStatus{Active: true}
-	response := &pb.NVMeController{Spec: &pb.NVMeControllerSpec{Id: &pc.ObjectKey{Value: "TBD"}}}
+	s.Controllers[in.NvMeController.Spec.Name] = in.NvMeController
+	s.Controllers[in.NvMeController.Spec.Name].Spec.NvmeControllerId = int32(result.Cntlid)
+	s.Controllers[in.NvMeController.Spec.Name].Status = &pb.NVMeControllerStatus{Active: true}
+	response := &pb.NVMeController{Spec: &pb.NVMeControllerSpec{Name: "TBD"}}
 	err = deepcopier.Copy(in.NvMeController).To(response)
 	if err != nil {
 		log.Printf("error: %v", err)
@@ -287,7 +286,7 @@ func (s *Server) DeleteNVMeController(_ context.Context, in *pb.DeleteNVMeContro
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	delete(s.Controllers, controller.Spec.Id.Value)
+	delete(s.Controllers, controller.Spec.Name)
 	return &emptypb.Empty{}, nil
 }
 
@@ -375,14 +374,14 @@ func (s *Server) CreateNVMeNamespace(_ context.Context, in *pb.CreateNVMeNamespa
 	// see https://google.aip.dev/133#user-specified-ids
 	name := uuid.New().String()
 	if in.NvMeNamespaceId != "" {
-		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeNamespaceId, in.NvMeNamespace.Spec.Id)
+		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvMeNamespaceId, in.NvMeNamespace.Spec.Name)
 		name = in.NvMeNamespaceId
 	}
-	in.NvMeNamespace.Spec.Id = &pc.ObjectKey{Value: name}
+	in.NvMeNamespace.Spec.Name = name
 	// idempotent API when called with same key, should return same object
-	namespace, ok := s.Namespaces[in.NvMeNamespace.Spec.Id.Value]
+	namespace, ok := s.Namespaces[in.NvMeNamespace.Spec.Name]
 	if ok {
-		log.Printf("Already existing NVMeNamespace with id %v", in.NvMeNamespace.Spec.Id.Value)
+		log.Printf("Already existing NVMeNamespace with id %v", in.NvMeNamespace.Spec.Name)
 		return namespace, nil
 	}
 	// not found, so create a new one
@@ -411,11 +410,11 @@ func (s *Server) CreateNVMeNamespace(_ context.Context, in *pb.CreateNVMeNamespa
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
-		msg := fmt.Sprintf("Could not create NS: %s", in.NvMeNamespace.Spec.Id.Value)
+		msg := fmt.Sprintf("Could not create NS: %s", in.NvMeNamespace.Spec.Name)
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	s.Namespaces[in.NvMeNamespace.Spec.Id.Value] = in.NvMeNamespace
+	s.Namespaces[in.NvMeNamespace.Spec.Name] = in.NvMeNamespace
 	response := &pb.NVMeNamespace{}
 	err = deepcopier.Copy(in.NvMeNamespace).To(response)
 	if err != nil {
@@ -463,7 +462,7 @@ func (s *Server) DeleteNVMeNamespace(_ context.Context, in *pb.DeleteNVMeNamespa
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	delete(s.Namespaces, namespace.Spec.Id.Value)
+	delete(s.Namespaces, namespace.Spec.Name)
 	return &emptypb.Empty{}, nil
 }
 

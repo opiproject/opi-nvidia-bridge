@@ -55,7 +55,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 			defer testEnv.Close()
 
 			if test.out != nil {
-				test.out.Id = &pc.ObjectKey{Value: testVirtioCtrlID}
+				test.out.Name = testVirtioCtrlID
 			}
 
 			request := &pb.CreateVirtioBlkRequest{VirtioBlk: test.in, VirtioBlkId: testVirtioCtrlID}
@@ -204,7 +204,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Id:       &pc.ObjectKey{Value: "VblkEmu0pf0"},
+					Name:     "VblkEmu0pf0",
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -220,17 +220,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Id:       &pc.ObjectKey{Value: "VblkEmu0pf0"},
+					Name:     "VblkEmu0pf0",
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: "VblkEmu0pf2"},
+					Name:     "VblkEmu0pf2",
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: testVirtioCtrlID},
+					Name:     testVirtioCtrlID,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -246,7 +246,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Id:       &pc.ObjectKey{Value: testVirtioCtrlID},
+					Name:     testVirtioCtrlID,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -262,17 +262,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Id:       &pc.ObjectKey{Value: "VblkEmu0pf0"},
+					Name:     "VblkEmu0pf0",
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: "VblkEmu0pf2"},
+					Name:     "VblkEmu0pf2",
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Id:       &pc.ObjectKey{Value: testVirtioCtrlID},
+					Name:     testVirtioCtrlID,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -361,7 +361,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 		"valid request with valid SPDK response": {
 			testVirtioCtrlID,
 			&pb.VirtioBlk{
-				Id:       &pc.ObjectKey{Value: testVirtioCtrlID},
+				Name:     testVirtioCtrlID,
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"},
 			},
@@ -378,7 +378,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Id.Value] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
 
 			request := &pb.GetVirtioBlkRequest{Name: tt.in}
 			response, err := testEnv.client.GetVirtioBlk(testEnv.ctx, request)
@@ -472,7 +472,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Id.Value] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
 
 			request := &pb.VirtioBlkStatsRequest{ControllerId: &pc.ObjectKey{Value: tt.in}}
 			response, err := testEnv.client.VirtioBlkStats(testEnv.ctx, request)
@@ -568,7 +568,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Id.Value] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
 
 			request := &pb.DeleteVirtioBlkRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteVirtioBlk(testEnv.ctx, request)

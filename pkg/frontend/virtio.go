@@ -30,7 +30,7 @@ var (
 
 func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 	sort.Slice(virtioBlks, func(i int, j int) bool {
-		return virtioBlks[i].Id.Value < virtioBlks[j].Id.Value
+		return virtioBlks[i].Name < virtioBlks[j].Name
 	})
 }
 
@@ -40,14 +40,14 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	// see https://google.aip.dev/133#user-specified-ids
 	name := uuid.New().String()
 	if in.VirtioBlkId != "" {
-		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Id)
+		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Name)
 		name = in.VirtioBlkId
 	}
-	in.VirtioBlk.Id = &pc.ObjectKey{Value: name}
+	in.VirtioBlk.Name = name
 	// idempotent API when called with same key, should return same object
-	controller, ok := s.VirtioCtrls[in.VirtioBlk.Id.Value]
+	controller, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if ok {
-		log.Printf("Already existing NVMeController with id %v", in.VirtioBlk.Id.Value)
+		log.Printf("Already existing NVMeController with id %v", in.VirtioBlk.Name)
 		return controller, nil
 	}
 	// not found, so create a new one
@@ -71,8 +71,8 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		log.Printf("Could not create: %v", in)
 		return nil, fmt.Errorf("%w for %v", errUnexpectedSpdkCallResult, in)
 	}
-	s.VirtioCtrls[in.VirtioBlk.Id.Value] = in.VirtioBlk
-	// s.VirtioCtrls[in.VirtioBlk.Id.Value].Status = &pb.NVMeControllerStatus{Active: true}
+	s.VirtioCtrls[in.VirtioBlk.Name] = in.VirtioBlk
+	// s.VirtioCtrls[in.VirtioBlk.Name].Status = &pb.NVMeControllerStatus{Active: true}
 	response := &pb.VirtioBlk{}
 	err = deepcopier.Copy(in.VirtioBlk).To(response)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkReques
 	if !result {
 		log.Printf("Could not delete: %v", in)
 	}
-	delete(s.VirtioCtrls, controller.Id.Value)
+	delete(s.VirtioCtrls, controller.Name)
 	return &emptypb.Empty{}, nil
 }
 
@@ -143,7 +143,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		r := &result[i]
 		if r.Type == "virtio_blk" {
 			ctrl := &pb.VirtioBlk{
-				Id:       &pc.ObjectKey{Value: r.Name},
+				Name:     r.Name,
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}
 			Blobarray = append(Blobarray, ctrl)
@@ -173,7 +173,7 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		r := &result[i]
 		if r.Name == in.Name && r.Type == "virtio_blk" {
 			return &pb.VirtioBlk{
-				Id:       &pc.ObjectKey{Value: r.Name},
+				Name:     r.Name,
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}, nil
 		}

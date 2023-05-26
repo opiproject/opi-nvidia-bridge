@@ -88,30 +88,30 @@ func dialer(opiSpdkServer *Server) func(context.Context, string) (net.Conn, erro
 
 var (
 	testSubsystemID = "subsystem-test"
-	testSubsystem   = pb.NVMeSubsystem{
-		Spec: &pb.NVMeSubsystemSpec{
+	testSubsystem   = pb.NvmeSubsystem{
+		Spec: &pb.NvmeSubsystemSpec{
 			Nqn: "nqn.2022-09.io.spdk:opi3",
 		},
 	}
 	testControllerID = "controller-test"
-	testController   = pb.NVMeController{
-		Spec: &pb.NVMeControllerSpec{
+	testController   = pb.NvmeController{
+		Spec: &pb.NvmeControllerSpec{
 			SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
 			PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 			NvmeControllerId: 17,
 		},
-		Status: &pb.NVMeControllerStatus{
+		Status: &pb.NvmeControllerStatus{
 			Active: true,
 		},
 	}
 	testNamespaceID = "namespace-test"
-	testNamespace   = pb.NVMeNamespace{
-		Spec: &pb.NVMeNamespaceSpec{
+	testNamespace   = pb.NvmeNamespace{
+		Spec: &pb.NvmeNamespaceSpec{
 			HostNsid:    22,
 			SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
 			VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
 		},
-		Status: &pb.NVMeNamespaceStatus{
+		Status: &pb.NvmeNamespaceStatus{
 			PciState:     2,
 			PciOperState: 1,
 		},

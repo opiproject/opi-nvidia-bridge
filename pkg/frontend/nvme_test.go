@@ -20,15 +20,15 @@ import (
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 )
 
-func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
-	spec := &pb.NVMeSubsystemSpec{
+func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
+	spec := &pb.NvmeSubsystemSpec{
 		Nqn:          "nqn.2022-09.io.spdk:opi3",
 		SerialNumber: "OpiSerialNumber",
 		ModelNumber:  "OpiModelNumber",
 	}
 	tests := map[string]struct {
-		in      *pb.NVMeSubsystem
-		out     *pb.NVMeSubsystem
+		in      *pb.NvmeSubsystem
+		out     *pb.NvmeSubsystem
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -36,7 +36,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 		exist   bool
 	}{
 		"valid request with invalid SPDK response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			nil,
@@ -47,7 +47,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			nil,
@@ -58,7 +58,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			nil,
@@ -69,7 +69,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			nil,
@@ -80,7 +80,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK version response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			nil,
@@ -91,17 +91,17 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
-			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
+			&pb.NvmeSubsystem{
+				Spec: &pb.NvmeSubsystemSpec{
 					Name:         testSubsystemID,
 					Nqn:          "nqn.2022-09.io.spdk:opi3",
 					SerialNumber: "OpiSerialNumber",
 					ModelNumber:  "OpiModelNumber",
 				},
-				Status: &pb.NVMeSubsystemStatus{
+				Status: &pb.NvmeSubsystemStatus{
 					FirmwareRevision: "SPDK v20.10",
 				},
 			},
@@ -113,7 +113,7 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 			false,
 		},
 		"already exists": {
-			&pb.NVMeSubsystem{
+			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
 			&testSubsystem,
@@ -141,8 +141,8 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 				tt.out.Spec.Name = testSubsystemID
 			}
 
-			request := &pb.CreateNVMeSubsystemRequest{NvMeSubsystem: tt.in, NvMeSubsystemId: testSubsystemID}
-			response, err := testEnv.client.CreateNVMeSubsystem(testEnv.ctx, request)
+			request := &pb.CreateNvmeSubsystemRequest{NvmeSubsystem: tt.in, NvmeSubsystemId: testSubsystemID}
+			response, err := testEnv.client.CreateNvmeSubsystem(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)
 				mResponse, _ := proto.Marshal(response)
@@ -165,21 +165,21 @@ func TestFrontEnd_CreateNVMeSubsystem(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
+func TestFrontEnd_UpdateNvmeSubsystem(t *testing.T) {
 	tests := map[string]struct {
-		in      *pb.NVMeSubsystem
-		out     *pb.NVMeSubsystem
+		in      *pb.NvmeSubsystem
+		out     *pb.NvmeSubsystem
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
 	}{
 		"unimplemented method": {
-			&pb.NVMeSubsystem{},
+			&pb.NvmeSubsystem{},
 			nil,
 			[]string{""},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "UpdateNVMeSubsystem"),
+			fmt.Sprintf("%v method is not implemented", "UpdateNvmeSubsystem"),
 			false,
 		},
 	}
@@ -194,8 +194,8 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.UpdateNVMeSubsystemRequest{NvMeSubsystem: tt.in}
-			response, err := testEnv.client.UpdateNVMeSubsystem(testEnv.ctx, request)
+			request := &pb.UpdateNvmeSubsystemRequest{NvmeSubsystem: tt.in}
+			response, err := testEnv.client.UpdateNvmeSubsystem(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", codes.Unimplemented, "received", response)
 			}
@@ -214,9 +214,9 @@ func TestFrontEnd_UpdateNVMeSubsystem(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
+func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 	tests := map[string]struct {
-		out     []*pb.NVMeSubsystem
+		out     []*pb.NvmeSubsystem
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -279,9 +279,9 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			"unknown-pagination-token",
 		},
 		"pagination": {
-			[]*pb.NVMeSubsystem{
+			[]*pb.NvmeSubsystem{
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi1",
 						SerialNumber: "OpiSerialNumber1",
 						ModelNumber:  "OpiModelNumber1",
@@ -296,30 +296,30 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination overflow": {
-			[]*pb.NVMeSubsystem{
+			[]*pb.NvmeSubsystem{
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi1",
 						SerialNumber: "OpiSerialNumber1",
 						ModelNumber:  "OpiModelNumber1",
 					},
 				},
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi2",
 						SerialNumber: "OpiSerialNumber2",
 						ModelNumber:  "OpiModelNumber2",
 					},
 				},
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi3",
 						SerialNumber: "OpiSerialNumber3",
 						ModelNumber:  "OpiModelNumber3",
 					},
 				},
 			},
-			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
+			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_Nvme_SNAP', 'model_number': 'Mellanox Nvme SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`},
 			codes.OK,
 			"",
@@ -328,9 +328,9 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination offset": {
-			[]*pb.NVMeSubsystem{
+			[]*pb.NvmeSubsystem{
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi2",
 						SerialNumber: "OpiSerialNumber2",
 						ModelNumber:  "OpiModelNumber2",
@@ -345,30 +345,30 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			"existing-pagination-token",
 		},
 		"valid request with valid SPDK response": {
-			[]*pb.NVMeSubsystem{
+			[]*pb.NvmeSubsystem{
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi1",
 						SerialNumber: "OpiSerialNumber1",
 						ModelNumber:  "OpiModelNumber1",
 					},
 				},
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi2",
 						SerialNumber: "OpiSerialNumber2",
 						ModelNumber:  "OpiModelNumber2",
 					},
 				},
 				{
-					Spec: &pb.NVMeSubsystemSpec{
+					Spec: &pb.NvmeSubsystemSpec{
 						Nqn:          "nqn.2022-09.io.spdk:opi3",
 						SerialNumber: "OpiSerialNumber3",
 						ModelNumber:  "OpiModelNumber3",
 					},
 				},
 			},
-			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
+			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_Nvme_SNAP', 'model_number': 'Mellanox Nvme SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`},
 			codes.OK,
 			"",
@@ -389,11 +389,11 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
-			request := &pb.ListNVMeSubsystemsRequest{PageSize: tt.size, PageToken: tt.token}
-			response, err := testEnv.client.ListNVMeSubsystems(testEnv.ctx, request)
+			request := &pb.ListNvmeSubsystemsRequest{PageSize: tt.size, PageToken: tt.token}
+			response, err := testEnv.client.ListNvmeSubsystems(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.NvMeSubsystems, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.NvMeSubsystems)
+				if !reflect.DeepEqual(response.NvmeSubsystems, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.NvmeSubsystems)
 				}
 			}
 
@@ -411,10 +411,10 @@ func TestFrontEnd_ListNVMeSubsystem(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
+func TestFrontEnd_GetNvmeSubsystem(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NVMeSubsystem
+		out     *pb.NvmeSubsystem
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -454,17 +454,17 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 		},
 		"valid request with valid SPDK response": {
 			testSubsystemID,
-			&pb.NVMeSubsystem{
-				Spec: &pb.NVMeSubsystemSpec{
+			&pb.NvmeSubsystem{
+				Spec: &pb.NvmeSubsystemSpec{
 					Nqn:          "nqn.2022-09.io.spdk:opi3",
 					SerialNumber: "OpiSerialNumber3",
 					ModelNumber:  "OpiModelNumber3",
 				},
-				Status: &pb.NVMeSubsystemStatus{
+				Status: &pb.NvmeSubsystemStatus{
 					FirmwareRevision: "TBD",
 				},
 			},
-			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_NVMe_SNAP', 'model_number': 'Mellanox NVMe SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
+			// {'jsonrpc': '2.0', 'id': 1, 'result': [{'nqn': 'nqn.2020-12.mlnx.snap', 'serial_number': 'Mellanox_Nvme_SNAP', 'model_number': 'Mellanox Nvme SNAP Controller', 'controllers': [{'name': 'NvmeEmu0pf1', 'cntlid': 0, 'pci_bdf': 'ca:00.3', 'pci_index': 1}]}]}
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[{"nqn": "nqn.2022-09.io.spdk:opi1", "serial_number": "OpiSerialNumber1", "model_number": "OpiModelNumber1"},{"nqn": "nqn.2022-09.io.spdk:opi2", "serial_number": "OpiSerialNumber2", "model_number": "OpiModelNumber2"},{"nqn": "nqn.2022-09.io.spdk:opi3", "serial_number": "OpiSerialNumber3", "model_number": "OpiModelNumber3"}]}`},
 			codes.OK,
 			"",
@@ -490,8 +490,8 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.GetNVMeSubsystemRequest{Name: tt.in}
-			response, err := testEnv.client.GetNVMeSubsystem(testEnv.ctx, request)
+			request := &pb.GetNvmeSubsystemRequest{Name: tt.in}
+			response, err := testEnv.client.GetNvmeSubsystem(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
 					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
@@ -515,10 +515,10 @@ func TestFrontEnd_GetNVMeSubsystem(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
+func TestFrontEnd_NvmeSubsystemStats(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NVMeSubsystemStatsResponse
+		out     *pb.NvmeSubsystemStatsResponse
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -529,7 +529,7 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 			nil,
 			[]string{""},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "UpdateNVMeSubsystem"),
+			fmt.Sprintf("%v method is not implemented", "UpdateNvmeSubsystem"),
 			false,
 		},
 	}
@@ -544,8 +544,8 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.NVMeSubsystemStatsRequest{SubsystemId: &pc.ObjectKey{Value: tt.in}}
-			response, err := testEnv.client.NVMeSubsystemStats(testEnv.ctx, request)
+			request := &pb.NvmeSubsystemStatsRequest{SubsystemId: &pc.ObjectKey{Value: tt.in}}
+			response, err := testEnv.client.NvmeSubsystemStats(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", codes.Unimplemented, "received", response)
 			}
@@ -564,20 +564,20 @@ func TestFrontEnd_NVMeSubsystemStats(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_CreateNVMeController(t *testing.T) {
-	spec := &pb.NVMeControllerSpec{
+func TestFrontEnd_CreateNvmeController(t *testing.T) {
+	spec := &pb.NvmeControllerSpec{
 		SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
 		PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 		NvmeControllerId: 1,
 	}
-	controllerSpec := &pb.NVMeControllerSpec{
+	controllerSpec := &pb.NvmeControllerSpec{
 		SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
 		PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 		NvmeControllerId: 17,
 	}
 	tests := map[string]struct {
-		in      *pb.NVMeController
-		out     *pb.NVMeController
+		in      *pb.NvmeController
+		out     *pb.NvmeController
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -585,7 +585,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 		exist   bool
 	}{
 		"valid request with invalid SPDK response": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: spec,
 			},
 			nil,
@@ -596,7 +596,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: spec,
 			},
 			nil,
@@ -607,7 +607,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: spec,
 			},
 			nil,
@@ -618,7 +618,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: spec,
 			},
 			nil,
@@ -629,17 +629,17 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: controllerSpec,
 			},
-			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
+			&pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
 					Name:             testControllerID,
 					SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
 					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 					NvmeControllerId: 17,
 				},
-				Status: &pb.NVMeControllerStatus{
+				Status: &pb.NvmeControllerStatus{
 					Active: true,
 				},
 			},
@@ -650,7 +650,7 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 			false,
 		},
 		"already exists": {
-			&pb.NVMeController{
+			&pb.NvmeController{
 				Spec: spec,
 			},
 			&testController,
@@ -678,8 +678,8 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 				tt.out.Spec.Name = testControllerID
 			}
 
-			request := &pb.CreateNVMeControllerRequest{NvMeController: tt.in, NvMeControllerId: testControllerID}
-			response, err := testEnv.client.CreateNVMeController(testEnv.ctx, request)
+			request := &pb.CreateNvmeControllerRequest{NvmeController: tt.in, NvmeControllerId: testControllerID}
+			response, err := testEnv.client.CreateNvmeController(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)
 				mResponse, _ := proto.Marshal(response)
@@ -702,21 +702,21 @@ func TestFrontEnd_CreateNVMeController(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_UpdateNVMeController(t *testing.T) {
+func TestFrontEnd_UpdateNvmeController(t *testing.T) {
 	tests := map[string]struct {
-		in      *pb.NVMeController
-		out     *pb.NVMeController
+		in      *pb.NvmeController
+		out     *pb.NvmeController
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
 	}{
 		"unimplemented method": {
-			&pb.NVMeController{},
+			&pb.NvmeController{},
 			nil,
 			[]string{""},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "UpdateNVMeController"),
+			fmt.Sprintf("%v method is not implemented", "UpdateNvmeController"),
 			false,
 		},
 	}
@@ -731,8 +731,8 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.UpdateNVMeControllerRequest{NvMeController: tt.in}
-			response, err := testEnv.client.UpdateNVMeController(testEnv.ctx, request)
+			request := &pb.UpdateNvmeControllerRequest{NvmeController: tt.in}
+			response, err := testEnv.client.UpdateNvmeController(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", codes.Unimplemented, "received", response)
 			}
@@ -751,10 +751,10 @@ func TestFrontEnd_UpdateNVMeController(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_ListNVMeControllers(t *testing.T) {
+func TestFrontEnd_ListNvmeControllers(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     []*pb.NVMeController
+		out     []*pb.NvmeController
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -824,9 +824,9 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		},
 		"pagination": {
 			testSubsystemID,
-			[]*pb.NVMeController{
+			[]*pb.NvmeController{
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 1,
 					},
 				},
@@ -840,19 +840,19 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		},
 		"pagination overflow": {
 			testSubsystemID,
-			[]*pb.NVMeController{
+			[]*pb.NvmeController{
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 1,
 					},
 				},
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 2,
 					},
 				},
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 3,
 					},
 				},
@@ -866,9 +866,9 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		},
 		"pagination offset": {
 			testSubsystemID,
-			[]*pb.NVMeController{
+			[]*pb.NvmeController{
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 2,
 					},
 				},
@@ -882,19 +882,19 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 		},
 		"valid request with valid SPDK response": {
 			testSubsystemID,
-			[]*pb.NVMeController{
+			[]*pb.NvmeController{
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 1,
 					},
 				},
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 2,
 					},
 				},
 				{
-					Spec: &pb.NVMeControllerSpec{
+					Spec: &pb.NvmeControllerSpec{
 						NvmeControllerId: 3,
 					},
 				},
@@ -929,11 +929,11 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
-			request := &pb.ListNVMeControllersRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
-			response, err := testEnv.client.ListNVMeControllers(testEnv.ctx, request)
+			request := &pb.ListNvmeControllersRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
+			response, err := testEnv.client.ListNvmeControllers(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.NvMeControllers, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.NvMeControllers)
+				if !reflect.DeepEqual(response.NvmeControllers, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.NvmeControllers)
 				}
 			}
 
@@ -951,10 +951,10 @@ func TestFrontEnd_ListNVMeControllers(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_GetNVMeController(t *testing.T) {
+func TestFrontEnd_GetNvmeController(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NVMeController
+		out     *pb.NvmeController
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -994,11 +994,11 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 		},
 		"valid request with valid SPDK response": {
 			testControllerID,
-			&pb.NVMeController{
-				Spec: &pb.NVMeControllerSpec{
+			&pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
 					NvmeControllerId: 17,
 				},
-				Status: &pb.NVMeControllerStatus{
+				Status: &pb.NvmeControllerStatus{
 					Active: true,
 				},
 			},
@@ -1027,8 +1027,8 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.GetNVMeControllerRequest{Name: tt.in}
-			response, err := testEnv.client.GetNVMeController(testEnv.ctx, request)
+			request := &pb.GetNvmeControllerRequest{Name: tt.in}
+			response, err := testEnv.client.GetNvmeController(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
 					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
@@ -1052,10 +1052,10 @@ func TestFrontEnd_GetNVMeController(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NVMeControllerStats(t *testing.T) {
+func TestFrontEnd_NvmeControllerStats(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NVMeControllerStatsResponse
+		out     *pb.NvmeControllerStatsResponse
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -1066,7 +1066,7 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 			nil,
 			[]string{""},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "NVMeControllerStats"),
+			fmt.Sprintf("%v method is not implemented", "NvmeControllerStats"),
 			false,
 		},
 	}
@@ -1081,8 +1081,8 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.NVMeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
-			response, err := testEnv.client.NVMeControllerStats(testEnv.ctx, request)
+			request := &pb.NvmeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
+			response, err := testEnv.client.NvmeControllerStats(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", codes.Unimplemented, "received", response)
 			}
@@ -1101,8 +1101,8 @@ func TestFrontEnd_NVMeControllerStats(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
-	spec := &pb.NVMeNamespaceSpec{
+func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
+	spec := &pb.NvmeNamespaceSpec{
 		SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
 		HostNsid:    0,
 		VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
@@ -1110,7 +1110,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
 		Eui64:       1967554867335598546,
 	}
-	namespaceSpec := &pb.NVMeNamespaceSpec{
+	namespaceSpec := &pb.NvmeNamespaceSpec{
 		SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
 		HostNsid:    22,
 		VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
@@ -1119,8 +1119,8 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		Eui64:       1967554867335598546,
 	}
 	tests := map[string]struct {
-		in      *pb.NVMeNamespace
-		out     *pb.NVMeNamespace
+		in      *pb.NvmeNamespace
+		out     *pb.NvmeNamespace
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -1128,7 +1128,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 		exist   bool
 	}{
 		"valid request with invalid SPDK response": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: spec,
 			},
 			nil,
@@ -1139,7 +1139,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: spec,
 			},
 			nil,
@@ -1150,7 +1150,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: spec,
 			},
 			nil,
@@ -1161,7 +1161,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: spec,
 			},
 			nil,
@@ -1172,11 +1172,11 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: namespaceSpec,
 			},
-			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
+			&pb.NvmeNamespace{
+				Spec: &pb.NvmeNamespaceSpec{
 					Name:        testNamespaceID,
 					SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
 					HostNsid:    22,
@@ -1185,7 +1185,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 					Nguid:       "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
 					Eui64:       1967554867335598546,
 				},
-				Status: &pb.NVMeNamespaceStatus{
+				Status: &pb.NvmeNamespaceStatus{
 					PciState:     2,
 					PciOperState: 1,
 				},
@@ -1197,7 +1197,7 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 			false,
 		},
 		"already exists": {
-			&pb.NVMeNamespace{
+			&pb.NvmeNamespace{
 				Spec: spec,
 			},
 			&testNamespace,
@@ -1225,8 +1225,8 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 				tt.out.Spec.Name = testNamespaceID
 			}
 
-			request := &pb.CreateNVMeNamespaceRequest{NvMeNamespace: tt.in, NvMeNamespaceId: testNamespaceID}
-			response, err := testEnv.client.CreateNVMeNamespace(testEnv.ctx, request)
+			request := &pb.CreateNvmeNamespaceRequest{NvmeNamespace: tt.in, NvmeNamespaceId: testNamespaceID}
+			response, err := testEnv.client.CreateNvmeNamespace(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)
 				mResponse, _ := proto.Marshal(response)
@@ -1249,21 +1249,21 @@ func TestFrontEnd_CreateNVMeNamespace(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
+func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 	tests := map[string]struct {
-		in      *pb.NVMeNamespace
-		out     *pb.NVMeNamespace
+		in      *pb.NvmeNamespace
+		out     *pb.NvmeNamespace
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
 		start   bool
 	}{
 		"unimplemented method": {
-			&pb.NVMeNamespace{},
+			&pb.NvmeNamespace{},
 			nil,
 			[]string{""},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "UpdateNVMeNamespace"),
+			fmt.Sprintf("%v method is not implemented", "UpdateNvmeNamespace"),
 			false,
 		},
 	}
@@ -1278,8 +1278,8 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.UpdateNVMeNamespaceRequest{NvMeNamespace: tt.in}
-			response, err := testEnv.client.UpdateNVMeNamespace(testEnv.ctx, request)
+			request := &pb.UpdateNvmeNamespaceRequest{NvmeNamespace: tt.in}
+			response, err := testEnv.client.UpdateNvmeNamespace(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", codes.Unimplemented, "received", response)
 			}
@@ -1298,10 +1298,10 @@ func TestFrontEnd_UpdateNVMeNamespace(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
+func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     []*pb.NVMeNamespace
+		out     []*pb.NvmeNamespace
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -1381,9 +1381,9 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		},
 		"pagination": {
 			testSubsystemID,
-			[]*pb.NVMeNamespace{
+			[]*pb.NvmeNamespace{
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 11,
 					},
 				},
@@ -1397,19 +1397,19 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		},
 		"pagination overflow": {
 			testSubsystemID,
-			[]*pb.NVMeNamespace{
+			[]*pb.NvmeNamespace{
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 11,
 					},
 				},
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 12,
 					},
 				},
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 13,
 					},
 				},
@@ -1423,9 +1423,9 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		},
 		"pagination offset": {
 			testSubsystemID,
-			[]*pb.NVMeNamespace{
+			[]*pb.NvmeNamespace{
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 12,
 					},
 				},
@@ -1439,19 +1439,19 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 		},
 		"valid request with valid SPDK response": {
 			testSubsystemID,
-			[]*pb.NVMeNamespace{
+			[]*pb.NvmeNamespace{
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 11,
 					},
 				},
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 12,
 					},
 				},
 				{
-					Spec: &pb.NVMeNamespaceSpec{
+					Spec: &pb.NvmeNamespaceSpec{
 						HostNsid: 13,
 					},
 				},
@@ -1486,11 +1486,11 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
-			request := &pb.ListNVMeNamespacesRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
-			response, err := testEnv.client.ListNVMeNamespaces(testEnv.ctx, request)
+			request := &pb.ListNvmeNamespacesRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
+			response, err := testEnv.client.ListNvmeNamespaces(testEnv.ctx, request)
 			if response != nil {
-				if !reflect.DeepEqual(response.NvMeNamespaces, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.NvMeNamespaces)
+				if !reflect.DeepEqual(response.NvmeNamespaces, tt.out) {
+					t.Error("response: expected", tt.out, "received", response.NvmeNamespaces)
 				}
 			}
 
@@ -1508,10 +1508,10 @@ func TestFrontEnd_ListNVMeNamespaces(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
+func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NVMeNamespace
+		out     *pb.NvmeNamespace
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -1559,11 +1559,11 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 		},
 		"valid request with valid SPDK response": {
 			testNamespaceID,
-			&pb.NVMeNamespace{
-				Spec: &pb.NVMeNamespaceSpec{
+			&pb.NvmeNamespace{
+				Spec: &pb.NvmeNamespaceSpec{
 					HostNsid: 22,
 				},
-				Status: &pb.NVMeNamespaceStatus{
+				Status: &pb.NvmeNamespaceStatus{
 					PciState:     2,
 					PciOperState: 1,
 				},
@@ -1593,8 +1593,8 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.GetNVMeNamespaceRequest{Name: tt.in}
-			response, err := testEnv.client.GetNVMeNamespace(testEnv.ctx, request)
+			request := &pb.GetNvmeNamespaceRequest{Name: tt.in}
+			response, err := testEnv.client.GetNvmeNamespace(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
 					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
@@ -1618,7 +1618,7 @@ func TestFrontEnd_GetNVMeNamespace(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
+func TestFrontEnd_NvmeNamespaceStats(t *testing.T) {
 	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
@@ -1698,8 +1698,8 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.NVMeNamespaceStatsRequest{NamespaceId: &pc.ObjectKey{Value: tt.in}}
-			response, err := testEnv.client.NVMeNamespaceStats(testEnv.ctx, request)
+			request := &pb.NvmeNamespaceStatsRequest{NamespaceId: &pc.ObjectKey{Value: tt.in}}
+			response, err := testEnv.client.NvmeNamespaceStats(testEnv.ctx, request)
 			if response != nil {
 				if !reflect.DeepEqual(response.Stats, tt.out) {
 					t.Error("response: expected", tt.out, "received", response.Stats)
@@ -1720,7 +1720,7 @@ func TestFrontEnd_NVMeNamespaceStats(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
+func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
@@ -1805,8 +1805,8 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.DeleteNVMeNamespaceRequest{Name: tt.in, AllowMissing: tt.missing}
-			response, err := testEnv.client.DeleteNVMeNamespace(testEnv.ctx, request)
+			request := &pb.DeleteNvmeNamespaceRequest{Name: tt.in, AllowMissing: tt.missing}
+			response, err := testEnv.client.DeleteNvmeNamespace(testEnv.ctx, request)
 			if err != nil {
 				if er, ok := status.FromError(err); ok {
 					if er.Code() != tt.errCode {
@@ -1824,7 +1824,7 @@ func TestFrontEnd_DeleteNVMeNamespace(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_DeleteNVMeController(t *testing.T) {
+func TestFrontEnd_DeleteNvmeController(t *testing.T) {
 	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
@@ -1909,8 +1909,8 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.DeleteNVMeControllerRequest{Name: tt.in, AllowMissing: tt.missing}
-			response, err := testEnv.client.DeleteNVMeController(testEnv.ctx, request)
+			request := &pb.DeleteNvmeControllerRequest{Name: tt.in, AllowMissing: tt.missing}
+			response, err := testEnv.client.DeleteNvmeController(testEnv.ctx, request)
 			if err != nil {
 				if er, ok := status.FromError(err); ok {
 					if er.Code() != tt.errCode {
@@ -1928,7 +1928,7 @@ func TestFrontEnd_DeleteNVMeController(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
+func TestFrontEnd_DeleteNvmeSubsystem(t *testing.T) {
 	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
@@ -2013,8 +2013,8 @@ func TestFrontEnd_DeleteNVMeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 
-			request := &pb.DeleteNVMeSubsystemRequest{Name: tt.in, AllowMissing: tt.missing}
-			response, err := testEnv.client.DeleteNVMeSubsystem(testEnv.ctx, request)
+			request := &pb.DeleteNvmeSubsystemRequest{Name: tt.in, AllowMissing: tt.missing}
+			response, err := testEnv.client.DeleteNvmeSubsystem(testEnv.ctx, request)
 			if err != nil {
 				if er, ok := status.FromError(err); ok {
 					if er.Code() != tt.errCode {

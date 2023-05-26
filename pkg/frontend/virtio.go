@@ -47,7 +47,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if ok {
-		log.Printf("Already existing NVMeController with id %v", in.VirtioBlk.Name)
+		log.Printf("Already existing NvmeController with id %v", in.VirtioBlk.Name)
 		return controller, nil
 	}
 	// not found, so create a new one
@@ -72,7 +72,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		return nil, fmt.Errorf("%w for %v", errUnexpectedSpdkCallResult, in)
 	}
 	s.VirtioCtrls[in.VirtioBlk.Name] = in.VirtioBlk
-	// s.VirtioCtrls[in.VirtioBlk.Name].Status = &pb.NVMeControllerStatus{Active: true}
+	// s.VirtioCtrls[in.VirtioBlk.Name].Status = &pb.NvmeControllerStatus{Active: true}
 	response := &pb.VirtioBlk{}
 	err = deepcopier.Copy(in.VirtioBlk).To(response)
 	if err != nil {

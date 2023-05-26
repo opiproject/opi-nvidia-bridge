@@ -14,20 +14,20 @@ import (
 // Server contains frontend related OPI services
 type Server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
-	Subsystems  map[string]*pb.NVMeSubsystem
-	Controllers map[string]*pb.NVMeController
-	Namespaces  map[string]*pb.NVMeNamespace
+	Subsystems  map[string]*pb.NvmeSubsystem
+	Controllers map[string]*pb.NvmeController
+	Namespaces  map[string]*pb.NvmeNamespace
 	VirtioCtrls map[string]*pb.VirtioBlk
 	Pagination  map[string]int
 	rpc         spdk.JSONRPC
 }
 
-// NewServer creates initialized instance of NVMe server
+// NewServer creates initialized instance of Nvme server
 func NewServer(jsonRPC spdk.JSONRPC) *Server {
 	return &Server{
-		Subsystems:  make(map[string]*pb.NVMeSubsystem),
-		Controllers: make(map[string]*pb.NVMeController),
-		Namespaces:  make(map[string]*pb.NVMeNamespace),
+		Subsystems:  make(map[string]*pb.NvmeSubsystem),
+		Controllers: make(map[string]*pb.NvmeController),
+		Namespaces:  make(map[string]*pb.NvmeNamespace),
 		VirtioCtrls: make(map[string]*pb.VirtioBlk),
 		Pagination:  make(map[string]int),
 		rpc:         jsonRPC,

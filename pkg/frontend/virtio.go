@@ -17,7 +17,6 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
-	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -73,12 +72,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	}
 	s.VirtioCtrls[in.VirtioBlk.Name] = in.VirtioBlk
 	// s.VirtioCtrls[in.VirtioBlk.Name].Status = &pb.NvmeControllerStatus{Active: true}
-	response := &pb.VirtioBlk{}
-	err = deepcopier.Copy(in.VirtioBlk).To(response)
-	if err != nil {
-		log.Printf("Error at response creation: %v", err)
-		return nil, status.Error(codes.Internal, "Failed to construct device create response")
-	}
+	response := server.ProtoClone(in.VirtioBlk)
 	return response, nil
 }
 

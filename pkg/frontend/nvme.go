@@ -20,7 +20,6 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
-	"github.com/ulule/deepcopier"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -86,12 +85,7 @@ func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsyst
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", ver)
-	response := &pb.NvmeSubsystem{}
-	err = deepcopier.Copy(in.NvmeSubsystem).To(response)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return nil, err
-	}
+	response := server.ProtoClone(in.NvmeSubsystem)
 	response.Status = &pb.NvmeSubsystemStatus{FirmwareRevision: ver.Version}
 	return response, nil
 }
@@ -244,12 +238,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 	s.Controllers[in.NvmeController.Spec.Name] = in.NvmeController
 	s.Controllers[in.NvmeController.Spec.Name].Spec.NvmeControllerId = int32(result.Cntlid)
 	s.Controllers[in.NvmeController.Spec.Name].Status = &pb.NvmeControllerStatus{Active: true}
-	response := &pb.NvmeController{Spec: &pb.NvmeControllerSpec{Name: "TBD"}}
-	err = deepcopier.Copy(in.NvmeController).To(response)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return nil, err
-	}
+	response := server.ProtoClone(in.NvmeController)
 	return response, nil
 }
 
@@ -415,12 +404,7 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	s.Namespaces[in.NvmeNamespace.Spec.Name] = in.NvmeNamespace
-	response := &pb.NvmeNamespace{}
-	err = deepcopier.Copy(in.NvmeNamespace).To(response)
-	if err != nil {
-		log.Printf("error: %v", err)
-		return nil, err
-	}
+	response := server.ProtoClone(in.NvmeNamespace)
 	response.Status = &pb.NvmeNamespaceStatus{PciState: 2, PciOperState: 1}
 	return response, nil
 }

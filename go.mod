@@ -7,9 +7,8 @@ require (
 	github.com/opiproject/gospdk v0.0.0-20230515120524-37c85998ff39
 	github.com/opiproject/opi-api v0.0.0-20230525195117-1db0f9cbae90
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230527073217-96fc817e987d
-	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230527051058-c4fda0e8a386
+	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230530151717-744a32dc021e
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
-	github.com/ulule/deepcopier v0.0.0-20200430083143-45decc6639b6
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )

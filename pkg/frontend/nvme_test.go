@@ -95,8 +95,8 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 				Spec: spec,
 			},
 			&pb.NvmeSubsystem{
+				Name: testSubsystemID,
 				Spec: &pb.NvmeSubsystemSpec{
-					Name:         testSubsystemID,
 					Nqn:          "nqn.2022-09.io.spdk:opi3",
 					SerialNumber: "OpiSerialNumber",
 					ModelNumber:  "OpiModelNumber",
@@ -135,10 +135,10 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 			if tt.exist {
 				testEnv.opiSpdkServer.Subsystems[testSubsystemID] = &testSubsystem
-				testEnv.opiSpdkServer.Subsystems[testSubsystemID].Spec.Name = testSubsystemID
+				testEnv.opiSpdkServer.Subsystems[testSubsystemID].Name = testSubsystemID
 			}
 			if tt.out != nil {
-				tt.out.Spec.Name = testSubsystemID
+				tt.out.Name = testSubsystemID
 			}
 
 			request := &pb.CreateNvmeSubsystemRequest{NvmeSubsystem: tt.in, NvmeSubsystemId: testSubsystemID}
@@ -633,8 +633,8 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 				Spec: controllerSpec,
 			},
 			&pb.NvmeController{
+				Name: testControllerID,
 				Spec: &pb.NvmeControllerSpec{
-					Name:             testControllerID,
 					SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
 					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 					NvmeControllerId: 17,
@@ -672,10 +672,10 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
 			if tt.exist {
 				testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
-				testEnv.opiSpdkServer.Controllers[testControllerID].Spec.Name = testControllerID
+				testEnv.opiSpdkServer.Controllers[testControllerID].Name = testControllerID
 			}
 			if tt.out != nil {
-				tt.out.Spec.Name = testControllerID
+				tt.out.Name = testControllerID
 			}
 
 			request := &pb.CreateNvmeControllerRequest{NvmeController: tt.in, NvmeControllerId: testControllerID}
@@ -1176,8 +1176,8 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 				Spec: namespaceSpec,
 			},
 			&pb.NvmeNamespace{
+				Name: testNamespaceID,
 				Spec: &pb.NvmeNamespaceSpec{
-					Name:        testNamespaceID,
 					SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
 					HostNsid:    22,
 					VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
@@ -1219,10 +1219,10 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerID] = &testController
 			if tt.exist {
 				testEnv.opiSpdkServer.Namespaces[testNamespaceID] = &testNamespace
-				testEnv.opiSpdkServer.Namespaces[testNamespaceID].Spec.Name = testNamespaceID
+				testEnv.opiSpdkServer.Namespaces[testNamespaceID].Name = testNamespaceID
 			}
 			if tt.out != nil {
-				tt.out.Spec.Name = testNamespaceID
+				tt.out.Name = testNamespaceID
 			}
 
 			request := &pb.CreateNvmeNamespaceRequest{NvmeNamespace: tt.in, NvmeNamespaceId: testNamespaceID}

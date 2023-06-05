@@ -10,6 +10,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"path"
 	"sort"
 	"strconv"
 
@@ -124,6 +125,17 @@ func (s *Server) DeleteNvmeSubsystem(_ context.Context, in *pb.DeleteNvmeSubsyst
 // UpdateNvmeSubsystem updates an Nvme Subsystem
 func (s *Server) UpdateNvmeSubsystem(_ context.Context, in *pb.UpdateNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("UpdateNvmeSubsystem: Received from client: %v", in)
+	volume, ok := s.Subsystems[in.NvmeSubsystem.Name]
+	if !ok {
+		if in.AllowMissing {
+			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
+		}
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeSubsystem.Name)
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	resourceID := path.Base(volume.Name)
+	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeSubsystem method is not implemented")
 }
 
@@ -286,6 +298,17 @@ func (s *Server) DeleteNvmeController(_ context.Context, in *pb.DeleteNvmeContro
 // UpdateNvmeController updates an Nvme controller
 func (s *Server) UpdateNvmeController(_ context.Context, in *pb.UpdateNvmeControllerRequest) (*pb.NvmeController, error) {
 	log.Printf("UpdateNvmeController: Received from client: %v", in)
+	volume, ok := s.Controllers[in.NvmeController.Name]
+	if !ok {
+		if in.AllowMissing {
+			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
+		}
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeController.Name)
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	resourceID := path.Base(volume.Name)
+	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeController method is not implemented")
 }
 
@@ -461,6 +484,17 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 // UpdateNvmeNamespace updates an Nvme namespace
 func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
 	log.Printf("UpdateNvmeNamespace: Received from client: %v", in)
+	volume, ok := s.Namespaces[in.NvmeNamespace.Name]
+	if !ok {
+		if in.AllowMissing {
+			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
+		}
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Name)
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	resourceID := path.Base(volume.Name)
+	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeNamespace method is not implemented")
 }
 

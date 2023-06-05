@@ -37,12 +37,12 @@ func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("CreateVirtioBlk: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
-	name := uuid.New().String()
+	resourceID := uuid.New().String()
 	if in.VirtioBlkId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Name)
-		name = in.VirtioBlkId
+		resourceID = in.VirtioBlkId
 	}
-	in.VirtioBlk.Name = name
+	in.VirtioBlk.Name = resourceID
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if ok {
@@ -51,7 +51,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	}
 	// not found, so create a new one
 	params := models.NvdaControllerVirtioBlkCreateParams{
-		Serial: name,
+		Serial: resourceID,
 		Bdev:   in.VirtioBlk.VolumeId.Value,
 		PfID:   int(in.VirtioBlk.PcieId.PhysicalFunction),
 		// VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),

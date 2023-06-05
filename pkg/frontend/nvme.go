@@ -47,12 +47,12 @@ func sortNvmeNamespaces(namespaces []*pb.NvmeNamespace) {
 func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("CreateNvmeSubsystem: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
-	name := uuid.New().String()
+	resourceID := uuid.New().String()
 	if in.NvmeSubsystemId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeSubsystemId, in.NvmeSubsystem.Name)
-		name = in.NvmeSubsystemId
+		resourceID = in.NvmeSubsystemId
 	}
-	in.NvmeSubsystem.Name = name
+	in.NvmeSubsystem.Name = resourceID
 	// idempotent API when called with same key, should return same object
 	subsys, ok := s.Subsystems[in.NvmeSubsystem.Name]
 	if ok {
@@ -199,12 +199,12 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
-	name := uuid.New().String()
+	resourceID := uuid.New().String()
 	if in.NvmeControllerId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeControllerId, in.NvmeController.Name)
-		name = in.NvmeControllerId
+		resourceID = in.NvmeControllerId
 	}
-	in.NvmeController.Name = name
+	in.NvmeController.Name = resourceID
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.Controllers[in.NvmeController.Name]
 	if ok {
@@ -369,12 +369,12 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
-	name := uuid.New().String()
+	resourceID := uuid.New().String()
 	if in.NvmeNamespaceId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeNamespaceId, in.NvmeNamespace.Name)
-		name = in.NvmeNamespaceId
+		resourceID = in.NvmeNamespaceId
 	}
-	in.NvmeNamespace.Name = name
+	in.NvmeNamespace.Name = resourceID
 	// idempotent API when called with same key, should return same object
 	namespace, ok := s.Namespaces[in.NvmeNamespace.Name]
 	if ok {

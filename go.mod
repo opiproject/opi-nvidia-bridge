@@ -9,6 +9,7 @@ require (
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230527073217-96fc817e987d
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230603165131-f8ecca373b6f
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
+	go.einride.tech/aip v0.60.0
 	google.golang.org/grpc v1.55.0
 	google.golang.org/protobuf v1.30.0
 )

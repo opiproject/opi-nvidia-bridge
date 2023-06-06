@@ -21,6 +21,7 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/resourceid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -48,7 +49,7 @@ func sortNvmeNamespaces(namespaces []*pb.NvmeNamespace) {
 func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("CreateNvmeSubsystem: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
-	resourceID := uuid.New().String()
+	resourceID := resourceid.NewSystemGenerated()
 	if in.NvmeSubsystemId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeSubsystemId, in.NvmeSubsystem.Name)
 		resourceID = in.NvmeSubsystemId
@@ -211,7 +212,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
-	resourceID := uuid.New().String()
+	resourceID := resourceid.NewSystemGenerated()
 	if in.NvmeControllerId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeControllerId, in.NvmeController.Name)
 		resourceID = in.NvmeControllerId
@@ -392,7 +393,7 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
-	resourceID := uuid.New().String()
+	resourceID := resourceid.NewSystemGenerated()
 	if in.NvmeNamespaceId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeNamespaceId, in.NvmeNamespace.Name)
 		resourceID = in.NvmeNamespaceId

@@ -18,6 +18,7 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/resourceid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -38,7 +39,7 @@ func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("CreateVirtioBlk: Received from client: %v", in)
 	// see https://google.aip.dev/133#user-specified-ids
-	resourceID := uuid.New().String()
+	resourceID := resourceid.NewSystemGenerated()
 	if in.VirtioBlkId != "" {
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Name)
 		resourceID = in.VirtioBlkId

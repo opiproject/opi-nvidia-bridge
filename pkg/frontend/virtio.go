@@ -50,7 +50,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Name)
 		resourceID = in.VirtioBlkId
 	}
-	in.VirtioBlk.Name = resourceID
+	in.VirtioBlk.Name = server.ResourceIDToVolumeName(resourceID)
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if ok {
@@ -161,7 +161,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		r := &result[i]
 		if r.Type == "virtio_blk" {
 			ctrl := &pb.VirtioBlk{
-				Name:     r.Name,
+				Name:     server.ResourceIDToVolumeName(r.Name),
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}
 			Blobarray = append(Blobarray, ctrl)
@@ -187,11 +187,12 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
+	resourceID := path.Base(in.Name)
 	for i := range result {
 		r := &result[i]
-		if r.Name == in.Name && r.Type == "virtio_blk" {
+		if r.Name == resourceID && r.Type == "virtio_blk" {
 			return &pb.VirtioBlk{
-				Name:     r.Name,
+				Name:     server.ResourceIDToVolumeName(r.Name),
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"}}, nil
 		}

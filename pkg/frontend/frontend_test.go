@@ -87,16 +87,18 @@ func dialer(opiSpdkServer *Server) func(context.Context, string) (net.Conn, erro
 }
 
 var (
-	testSubsystemID = "subsystem-test"
-	testSubsystem   = pb.NvmeSubsystem{
+	testSubsystemID   = "subsystem-test"
+	testSubsystemName = server.ResourceIDToVolumeName(testSubsystemID)
+	testSubsystem     = pb.NvmeSubsystem{
 		Spec: &pb.NvmeSubsystemSpec{
 			Nqn: "nqn.2022-09.io.spdk:opi3",
 		},
 	}
-	testControllerID = "controller-test"
-	testController   = pb.NvmeController{
+	testControllerID   = "controller-test"
+	testControllerName = server.ResourceIDToVolumeName(testControllerID)
+	testController     = pb.NvmeController{
 		Spec: &pb.NvmeControllerSpec{
-			SubsystemId:      &pc.ObjectKey{Value: testSubsystemID},
+			SubsystemId:      &pc.ObjectKey{Value: testSubsystemName},
 			PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 			NvmeControllerId: 17,
 		},
@@ -104,11 +106,12 @@ var (
 			Active: true,
 		},
 	}
-	testNamespaceID = "namespace-test"
-	testNamespace   = pb.NvmeNamespace{
+	testNamespaceID   = "namespace-test"
+	testNamespaceName = server.ResourceIDToVolumeName(testNamespaceID)
+	testNamespace     = pb.NvmeNamespace{
 		Spec: &pb.NvmeNamespaceSpec{
 			HostNsid:    22,
-			SubsystemId: &pc.ObjectKey{Value: testSubsystemID},
+			SubsystemId: &pc.ObjectKey{Value: testSubsystemName},
 			VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
 		},
 		Status: &pb.NvmeNamespaceStatus{
@@ -116,8 +119,9 @@ var (
 			PciOperState: 1,
 		},
 	}
-	testVirtioCtrlID = "virtio-blk-42"
-	testVirtioCtrl   = pb.VirtioBlk{
+	testVirtioCtrlID   = "virtio-blk-42"
+	testVirtioCtrlName = server.ResourceIDToVolumeName(testVirtioCtrlID)
+	testVirtioCtrl     = pb.VirtioBlk{
 		PcieId:   &pb.PciEndpoint{PhysicalFunction: 42},
 		VolumeId: &pc.ObjectKey{Value: "Malloc42"},
 		MaxIoQps: 1,

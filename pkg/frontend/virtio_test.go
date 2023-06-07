@@ -19,6 +19,7 @@ import (
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
+	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 )
 
 func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
@@ -55,7 +56,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 			defer testEnv.Close()
 
 			if test.out != nil {
-				test.out.Name = testVirtioCtrlID
+				test.out.Name = testVirtioCtrlName
 			}
 
 			request := &pb.CreateVirtioBlkRequest{VirtioBlk: test.in, VirtioBlkId: testVirtioCtrlID}
@@ -95,7 +96,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 	}{
 		"unimplemented method": {
 			&pb.VirtioBlk{
-				Name: testVirtioCtrlID,
+				Name: testVirtioCtrlName,
 			},
 			nil,
 			[]string{""},
@@ -105,7 +106,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 		},
 		"valid request with unknown key": {
 			&pb.VirtioBlk{
-				Name:     "unknown-id",
+				Name:     server.ResourceIDToVolumeName("unknown-id"),
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: 42},
 				VolumeId: &pc.ObjectKey{Value: "Malloc42"},
 				MaxIoQps: 1,
@@ -113,7 +114,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 			nil,
 			[]string{""},
 			codes.NotFound,
-			fmt.Sprintf("unable to find key %v", "unknown-id"),
+			fmt.Sprintf("unable to find key %v", server.ResourceIDToVolumeName("unknown-id")),
 			false,
 		},
 	}
@@ -221,7 +222,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Name:     "VblkEmu0pf0",
+					Name:     server.ResourceIDToVolumeName("VblkEmu0pf0"),
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -237,17 +238,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Name:     "VblkEmu0pf0",
+					Name:     server.ResourceIDToVolumeName("VblkEmu0pf0"),
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Name:     "VblkEmu0pf2",
+					Name:     server.ResourceIDToVolumeName("VblkEmu0pf2"),
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Name:     testVirtioCtrlID,
+					Name:     testVirtioCtrlName,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -263,7 +264,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Name:     testVirtioCtrlID,
+					Name:     testVirtioCtrlName,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -279,17 +280,17 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			"subsystem-test",
 			[]*pb.VirtioBlk{
 				{
-					Name:     "VblkEmu0pf0",
+					Name:     server.ResourceIDToVolumeName("VblkEmu0pf0"),
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Name:     "VblkEmu0pf2",
+					Name:     server.ResourceIDToVolumeName("VblkEmu0pf2"),
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
 				{
-					Name:     testVirtioCtrlID,
+					Name:     testVirtioCtrlName,
 					PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 					VolumeId: &pc.ObjectKey{Value: "TBD"},
 				},
@@ -344,15 +345,15 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 		start   bool
 	}{
 		"valid request with invalid SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.InvalidArgument,
-			fmt.Sprintf("Could not find Controller: %v", testVirtioCtrlID),
+			fmt.Sprintf("Could not find Controller: %v", testVirtioCtrlName),
 			true,
 		},
 		"valid request with empty SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{""},
 			codes.Unknown,
@@ -360,7 +361,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			true,
 		},
 		"valid request with ID mismatch SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
@@ -368,7 +369,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			true,
 		},
 		"valid request with error code from SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
 			codes.Unknown,
@@ -376,9 +377,9 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			true,
 		},
 		"valid request with valid SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			&pb.VirtioBlk{
-				Name:     testVirtioCtrlID,
+				Name:     testVirtioCtrlName,
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(0)},
 				VolumeId: &pc.ObjectKey{Value: "TBD"},
 			},
@@ -395,7 +396,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.start, tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName] = &testVirtioCtrl
 
 			request := &pb.GetVirtioBlkRequest{Name: tt.in}
 			response, err := testEnv.client.GetVirtioBlk(testEnv.ctx, request)
@@ -524,7 +525,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 		missing bool
 	}{
 		"valid request with invalid SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
 			codes.InvalidArgument,
@@ -533,7 +534,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{""},
 			codes.Unknown,
@@ -542,7 +543,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":false}`},
 			codes.Unknown,
@@ -551,7 +552,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":false}`},
 			codes.Unknown,
@@ -560,7 +561,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
-			testVirtioCtrlID,
+			testVirtioCtrlName,
 			&emptypb.Empty{},
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`}, // `{"jsonrpc": "2.0", "id": 1, "result": True}`,
 			codes.OK,
@@ -569,7 +570,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			false,
 		},
 		"unknown key with missing allowed": {
-			"unknown-id",
+			server.ResourceIDToVolumeName("unknown-id"),
 			&emptypb.Empty{},
 			[]string{""},
 			codes.OK,

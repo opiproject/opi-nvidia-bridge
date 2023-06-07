@@ -28,6 +28,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 		ModelNumber:  "OpiModelNumber",
 	}
 	tests := map[string]struct {
+		id      string
 		in      *pb.NvmeSubsystem
 		out     *pb.NvmeSubsystem
 		spdk    []string
@@ -36,7 +37,20 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 		start   bool
 		exist   bool
 	}{
+		"illegal resource_id": {
+			"CapitalLettersNotAllowed",
+			&pb.NvmeSubsystem{
+				Spec: spec,
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("user-settable ID must only contain lowercase, numbers and hyphens (%v)", "got: 'C' in position 0"),
+			false,
+			false,
+		},
 		"valid request with invalid SPDK response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -48,6 +62,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -59,6 +74,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -70,6 +86,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -81,6 +98,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK version response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -92,6 +110,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -114,6 +133,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			false,
 		},
 		"already exists": {
+			testSubsystemID,
 			&pb.NvmeSubsystem{
 				Spec: spec,
 			},
@@ -142,7 +162,7 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 				tt.out.Name = testSubsystemName
 			}
 
-			request := &pb.CreateNvmeSubsystemRequest{NvmeSubsystem: tt.in, NvmeSubsystemId: testSubsystemID}
+			request := &pb.CreateNvmeSubsystemRequest{NvmeSubsystem: tt.in, NvmeSubsystemId: tt.id}
 			response, err := testEnv.client.CreateNvmeSubsystem(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)
@@ -592,6 +612,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 		NvmeControllerId: 17,
 	}
 	tests := map[string]struct {
+		id      string
 		in      *pb.NvmeController
 		out     *pb.NvmeController
 		spdk    []string
@@ -600,7 +621,24 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 		start   bool
 		exist   bool
 	}{
+		"illegal resource_id": {
+			"CapitalLettersNotAllowed",
+			&pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
+					SubsystemId:      &pc.ObjectKey{Value: testSubsystemName},
+					PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
+					NvmeControllerId: 1,
+				},
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("user-settable ID must only contain lowercase, numbers and hyphens (%v)", "got: 'C' in position 0"),
+			false,
+			false,
+		},
 		"valid request with invalid SPDK response": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: spec,
 			},
@@ -612,6 +650,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: spec,
 			},
@@ -623,6 +662,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: spec,
 			},
@@ -634,6 +674,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: spec,
 			},
@@ -645,6 +686,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: controllerSpec,
 			},
@@ -666,6 +708,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			false,
 		},
 		"already exists": {
+			testControllerID,
 			&pb.NvmeController{
 				Spec: spec,
 			},
@@ -694,7 +737,7 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 				tt.out.Name = testControllerName
 			}
 
-			request := &pb.CreateNvmeControllerRequest{NvmeController: tt.in, NvmeControllerId: testControllerID}
+			request := &pb.CreateNvmeControllerRequest{NvmeController: tt.in, NvmeControllerId: tt.id}
 			response, err := testEnv.client.CreateNvmeController(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)
@@ -1147,6 +1190,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 		Eui64:       1967554867335598546,
 	}
 	tests := map[string]struct {
+		id      string
 		in      *pb.NvmeNamespace
 		out     *pb.NvmeNamespace
 		spdk    []string
@@ -1155,7 +1199,20 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 		start   bool
 		exist   bool
 	}{
+		"illegal resource_id": {
+			"CapitalLettersNotAllowed",
+			&pb.NvmeNamespace{
+				Spec: spec,
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("user-settable ID must only contain lowercase, numbers and hyphens (%v)", "got: 'C' in position 0"),
+			false,
+			false,
+		},
 		"valid request with invalid SPDK response": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: spec,
 			},
@@ -1167,6 +1224,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with empty SPDK response": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: spec,
 			},
@@ -1178,6 +1236,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with ID mismatch SPDK response": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: spec,
 			},
@@ -1189,6 +1248,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with error code from SPDK response": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: spec,
 			},
@@ -1200,6 +1260,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			false,
 		},
 		"valid request with valid SPDK response": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: namespaceSpec,
 			},
@@ -1225,6 +1286,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			false,
 		},
 		"already exists": {
+			testNamespaceID,
 			&pb.NvmeNamespace{
 				Spec: spec,
 			},
@@ -1253,7 +1315,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 				tt.out.Name = testNamespaceName
 			}
 
-			request := &pb.CreateNvmeNamespaceRequest{NvmeNamespace: tt.in, NvmeNamespaceId: testNamespaceID}
+			request := &pb.CreateNvmeNamespaceRequest{NvmeNamespace: tt.in, NvmeNamespaceId: tt.id}
 			response, err := testEnv.client.CreateNvmeNamespace(testEnv.ctx, request)
 			if response != nil {
 				mtt, _ := proto.Marshal(tt.out)

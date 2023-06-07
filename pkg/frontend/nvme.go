@@ -21,6 +21,7 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/resourceid"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
@@ -141,6 +142,11 @@ func (s *Server) UpdateNvmeSubsystem(_ context.Context, in *pb.UpdateNvmeSubsyst
 		return nil, err
 	}
 	resourceID := path.Base(volume.Name)
+	// update_mask = 2
+	if err := fieldmask.Validate(in.UpdateMask, in.NvmeSubsystem); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeSubsystem method is not implemented")
 }
@@ -319,6 +325,11 @@ func (s *Server) UpdateNvmeController(_ context.Context, in *pb.UpdateNvmeContro
 		return nil, err
 	}
 	resourceID := path.Base(volume.Name)
+	// update_mask = 2
+	if err := fieldmask.Validate(in.UpdateMask, in.NvmeController); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeController method is not implemented")
 }
@@ -510,6 +521,11 @@ func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespa
 		return nil, err
 	}
 	resourceID := path.Base(volume.Name)
+	// update_mask = 2
+	if err := fieldmask.Validate(in.UpdateMask, in.NvmeNamespace); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	log.Printf("TODO: use resourceID=%v", resourceID)
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeNamespace method is not implemented")
 }

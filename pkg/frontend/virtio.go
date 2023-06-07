@@ -78,9 +78,9 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		log.Printf("Could not create: %v", in)
 		return nil, fmt.Errorf("%w for %v", errUnexpectedSpdkCallResult, in)
 	}
-	s.VirtioCtrls[in.VirtioBlk.Name] = in.VirtioBlk
-	// s.VirtioCtrls[in.VirtioBlk.Name].Status = &pb.NvmeControllerStatus{Active: true}
 	response := server.ProtoClone(in.VirtioBlk)
+	// response.Status = &pb.NvmeControllerStatus{Active: true}
+	s.VirtioCtrls[in.VirtioBlk.Name] = response
 	return response, nil
 }
 

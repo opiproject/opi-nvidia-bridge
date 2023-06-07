@@ -79,7 +79,6 @@ func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsyst
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	s.Subsystems[in.NvmeSubsystem.Name] = in.NvmeSubsystem
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
 		msg := fmt.Sprintf("Could not create NQN: %s", in.NvmeSubsystem.Spec.Nqn)
@@ -95,6 +94,7 @@ func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsyst
 	log.Printf("Received from SPDK: %v", ver)
 	response := server.ProtoClone(in.NvmeSubsystem)
 	response.Status = &pb.NvmeSubsystemStatus{FirmwareRevision: ver.Version}
+	s.Subsystems[in.NvmeSubsystem.Name] = response
 	return response, nil
 }
 
@@ -268,10 +268,10 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	s.Controllers[in.NvmeController.Name] = in.NvmeController
-	s.Controllers[in.NvmeController.Name].Spec.NvmeControllerId = int32(result.Cntlid)
-	s.Controllers[in.NvmeController.Name].Status = &pb.NvmeControllerStatus{Active: true}
 	response := server.ProtoClone(in.NvmeController)
+	response.Spec.NvmeControllerId = int32(result.Cntlid)
+	response.Status = &pb.NvmeControllerStatus{Active: true}
+	s.Controllers[in.NvmeController.Name] = response
 	return response, nil
 }
 
@@ -461,9 +461,9 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	s.Namespaces[in.NvmeNamespace.Name] = in.NvmeNamespace
 	response := server.ProtoClone(in.NvmeNamespace)
 	response.Status = &pb.NvmeNamespaceStatus{PciState: 2, PciOperState: 1}
+	s.Namespaces[in.NvmeNamespace.Name] = response
 	return response, nil
 }
 

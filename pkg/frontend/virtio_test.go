@@ -16,6 +16,7 @@ import (
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
@@ -87,6 +88,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 
 func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 	tests := map[string]struct {
+		mask    *fieldmaskpb.FieldMask
 		in      *pb.VirtioBlk
 		out     *pb.VirtioBlk
 		spdk    []string
@@ -94,7 +96,19 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
+		"invalid fieldmask": {
+			&fieldmaskpb.FieldMask{Paths: []string{"*", "author"}},
+			&pb.VirtioBlk{
+				Name: testVirtioCtrlName,
+			},
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("invalid field path: %s", "'*' must not be used with other paths"),
+			false,
+		},
 		"unimplemented method": {
+			nil,
 			&pb.VirtioBlk{
 				Name: testVirtioCtrlName,
 			},
@@ -105,6 +119,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 			false,
 		},
 		"valid request with unknown key": {
+			nil,
 			&pb.VirtioBlk{
 				Name:     server.ResourceIDToVolumeName("unknown-id"),
 				PcieId:   &pb.PciEndpoint{PhysicalFunction: 42},
@@ -127,7 +142,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 
 			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
 
-			request := &pb.UpdateVirtioBlkRequest{VirtioBlk: tt.in}
+			request := &pb.UpdateVirtioBlkRequest{VirtioBlk: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateVirtioBlk(testEnv.ctx, request)
 			if response != nil {
 				t.Error("response: expected", tt.out, "received", response)

@@ -20,8 +20,10 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/resourceid"
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -36,6 +38,11 @@ func sortNvmeSubsystems(subsystems []*pb.NvmeSubsystem) {
 // CreateNvmeSubsystem creates an Nvme Subsystem
 func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("CreateNvmeSubsystem: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
 	// see https://google.aip.dev/133#user-specified-ids
 	resourceID := resourceid.NewSystemGenerated()
 	if in.NvmeSubsystemId != "" {
@@ -96,6 +103,17 @@ func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsyst
 // DeleteNvmeSubsystem deletes an Nvme Subsystem
 func (s *Server) DeleteNvmeSubsystem(_ context.Context, in *pb.DeleteNvmeSubsystemRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteNvmeSubsystem: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	subsys, ok := s.Subsystems[in.Name]
 	if !ok {
 		if in.AllowMissing {
@@ -127,6 +145,17 @@ func (s *Server) DeleteNvmeSubsystem(_ context.Context, in *pb.DeleteNvmeSubsyst
 // UpdateNvmeSubsystem updates an Nvme Subsystem
 func (s *Server) UpdateNvmeSubsystem(_ context.Context, in *pb.UpdateNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("UpdateNvmeSubsystem: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.NvmeSubsystem.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	volume, ok := s.Subsystems[in.NvmeSubsystem.Name]
 	if !ok {
 		if in.AllowMissing {
@@ -149,6 +178,12 @@ func (s *Server) UpdateNvmeSubsystem(_ context.Context, in *pb.UpdateNvmeSubsyst
 // ListNvmeSubsystems lists Nvme Subsystems
 func (s *Server) ListNvmeSubsystems(_ context.Context, in *pb.ListNvmeSubsystemsRequest) (*pb.ListNvmeSubsystemsResponse, error) {
 	log.Printf("ListNvmeSubsystems: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
 	if perr != nil {
 		log.Printf("error: %v", perr)
@@ -180,6 +215,17 @@ func (s *Server) ListNvmeSubsystems(_ context.Context, in *pb.ListNvmeSubsystems
 // GetNvmeSubsystem gets Nvme Subsystems
 func (s *Server) GetNvmeSubsystem(_ context.Context, in *pb.GetNvmeSubsystemRequest) (*pb.NvmeSubsystem, error) {
 	log.Printf("GetNvmeSubsystem: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	subsys, ok := s.Subsystems[in.Name]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
@@ -207,5 +253,16 @@ func (s *Server) GetNvmeSubsystem(_ context.Context, in *pb.GetNvmeSubsystemRequ
 // NvmeSubsystemStats gets Nvme Subsystem stats
 func (s *Server) NvmeSubsystemStats(_ context.Context, in *pb.NvmeSubsystemStatsRequest) (*pb.NvmeSubsystemStatsResponse, error) {
 	log.Printf("NvmeSubsystemStats: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.SubsystemId.Value); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	return nil, status.Errorf(codes.Unimplemented, "UpdateNvmeSubsystem method is not implemented")
 }

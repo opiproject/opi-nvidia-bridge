@@ -4,13 +4,13 @@ go 1.19
 
 require (
 	github.com/google/uuid v1.3.0
-	github.com/opiproject/gospdk v0.0.0-20230615112113-12a52a623c70
+	github.com/opiproject/gospdk v0.0.0-20230617012653-6fe2a5b162b8
 	github.com/opiproject/opi-api v0.0.0-20230603003023-432a550f4f6c
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230605163248-deb37f3c455c
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230610072714-7175e5cdc25e
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	go.einride.tech/aip v0.60.0
-	google.golang.org/grpc v1.55.0
+	google.golang.org/grpc v1.56.0
 	google.golang.org/protobuf v1.30.0
 )
 

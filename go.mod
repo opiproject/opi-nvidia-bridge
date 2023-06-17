@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.3.0
 	github.com/opiproject/gospdk v0.0.0-20230617012653-6fe2a5b162b8
 	github.com/opiproject/opi-api v0.0.0-20230617012429-e33accd8da8d
-	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230605163248-deb37f3c455c
+	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230617031231-acdb4d28e0fc
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230617100745-45a7375024ec
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	go.einride.tech/aip v0.60.0
@@ -19,7 +19,7 @@ require (
 	github.com/ghodss/yaml v1.0.0 // indirect
 	github.com/go-ole/go-ole v1.2.6 // indirect
 	github.com/golang/protobuf v1.5.3 // indirect
-	github.com/jaypipes/ghw v0.10.1-0.20230512193701-36ff37eb3bdf // indirect
+	github.com/jaypipes/ghw v0.11.0 // indirect
 	github.com/jaypipes/pcidb v1.0.0 // indirect
 	github.com/mitchellh/go-homedir v1.1.0 // indirect
 	github.com/pkg/errors v0.9.1 // indirect

@@ -262,6 +262,15 @@ func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 			false,
 			true,
 		},
+		"malformed name": {
+			"-ABC-DEF",
+			&emptypb.Empty{},
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+			false,
+		},
 	}
 
 	// run tests
@@ -649,6 +658,14 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 			[]string{""},
 			codes.NotFound,
 			fmt.Sprintf("unable to find key %v", server.ResourceIDToVolumeName("unknown-namespace-id")),
+			false,
+		},
+		"malformed name": {
+			"-ABC-DEF",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
 			false,
 		},
 	}

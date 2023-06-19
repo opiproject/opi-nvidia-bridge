@@ -403,6 +403,14 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			"",
 			true,
 		},
+		"malformed name": {
+			"-ABC-DEF",
+			nil,
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+		},
 	}
 
 	// run tests
@@ -592,6 +600,15 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			"",
 			false,
 			true,
+		},
+		"malformed name": {
+			"-ABC-DEF",
+			&emptypb.Empty{},
+			[]string{""},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+			false,
 		},
 	}
 

@@ -18,8 +18,10 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
+	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/fieldmask"
 	"go.einride.tech/aip/resourceid"
+	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
@@ -87,6 +89,17 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 // DeleteVirtioBlk deletes a Virtio block device
 func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkRequest) (*emptypb.Empty, error) {
 	log.Printf("DeleteVirtioBlk: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	controller, ok := s.VirtioCtrls[in.Name]
 	if !ok {
 		if in.AllowMissing {
@@ -174,6 +187,17 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 // GetVirtioBlk gets a Virtio block device
 func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("GetVirtioBlk: Received from client: %v", in)
+	// check required fields
+	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+	// fetch object from the database
 	_, ok := s.VirtioCtrls[in.Name]
 	if !ok {
 		msg := fmt.Sprintf("Could not find Controller: %s", in.Name)

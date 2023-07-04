@@ -713,6 +713,14 @@ func TestFrontEnd_NvmeSubsystemStats(t *testing.T) {
 			fmt.Sprintf("%v method is not implemented", "UpdateNvmeSubsystem"),
 			false,
 		},
+		"malformed name": {
+			"-ABC-DEF",
+			nil,
+			[]string{},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+		},
 	}
 
 	// run tests

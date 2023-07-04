@@ -128,6 +128,13 @@ func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkReques
 // UpdateVirtioBlk updates a Virtio block device
 func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	log.Printf("UpdateVirtioBlk: Received from client: %v", in)
+
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.VirtioBlk.Name); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+
 	volume, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if !ok {
 		if in.AllowMissing {

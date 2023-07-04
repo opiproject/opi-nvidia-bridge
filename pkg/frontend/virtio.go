@@ -236,6 +236,12 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 // VirtioBlkStats gets a Virtio block device stats
 func (s *Server) VirtioBlkStats(_ context.Context, in *pb.VirtioBlkStatsRequest) (*pb.VirtioBlkStatsResponse, error) {
 	log.Printf("VirtioBlkStats: Received from client: %v", in)
+	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
+	if err := resourcename.Validate(in.ControllerId.Value); err != nil {
+		log.Printf("error: %v", err)
+		return nil, err
+	}
+
 	var result models.NvdaControllerNvmeStatsResult
 	err := s.rpc.Call("controller_virtio_blk_get_iostat", nil, &result)
 	if err != nil {

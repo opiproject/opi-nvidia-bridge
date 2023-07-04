@@ -706,6 +706,14 @@ func TestFrontEnd_NvmeControllerStats(t *testing.T) {
 			fmt.Sprintf("%v method is not implemented", "NvmeControllerStats"),
 			false,
 		},
+		"malformed name": {
+			"-ABC-DEF",
+			nil,
+			[]string{},
+			codes.Unknown,
+			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+		},
 	}
 
 	// run tests

@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2022-2023 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright (C) 2023 Intel Corporation
 
 // Package frontend implememnts the FrontEnd APIs (host facing) of the storage Server
 package frontend
@@ -9,7 +10,6 @@ import (
 	"bytes"
 	"fmt"
 	"reflect"
-	"strings"
 	"testing"
 
 	"google.golang.org/grpc/codes"
@@ -25,29 +25,33 @@ import (
 
 func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 	tests := map[string]struct {
-		in          *pb.VirtioBlk
-		out         *pb.VirtioBlk
-		spdk        []string
-		expectedErr error
-		exist       bool
+		in      *pb.VirtioBlk
+		out     *pb.VirtioBlk
+		spdk    []string
+		errCode codes.Code
+		errMsg  string
+		exist   bool
 	}{
 		"valid virtio-blk creation": {
-			in:          &testVirtioCtrl,
-			out:         &testVirtioCtrl,
-			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":"VblkEmu0pf0"}`},
-			expectedErr: status.Error(codes.OK, ""),
+			in:      &testVirtioCtrl,
+			out:     &testVirtioCtrl,
+			spdk:    []string{`{"id":%d,"error":{"code":0,"message":""},"result":"VblkEmu0pf0"}`},
+			errCode: codes.OK,
+			errMsg:  "",
 		},
 		"spdk virtio-blk creation error": {
-			in:          &testVirtioCtrl,
-			out:         nil,
-			spdk:        []string{`{"id":%d,"error":{"code":1,"message":"some internal error"},"result":"VblkEmu0pf0"}`},
-			expectedErr: errFailedSpdkCall,
+			in:      &testVirtioCtrl,
+			out:     nil,
+			spdk:    []string{`{"id":%d,"error":{"code":1,"message":"some internal error"},"result":"VblkEmu0pf0"}`},
+			errCode: codes.Unknown,
+			errMsg:  "controller_virtio_blk_create: json response error: some internal error",
 		},
 		"spdk virtio-blk creation returned false response with no error": {
-			in:          &testVirtioCtrl,
-			out:         nil,
-			spdk:        []string{`{"id":%d,"error":{"code":0,"message":""},"result":""}`},
-			expectedErr: errUnexpectedSpdkCallResult,
+			in:      &testVirtioCtrl,
+			out:     nil,
+			spdk:    []string{`{"id":%d,"error":{"code":0,"message":""},"result":""}`},
+			errCode: codes.InvalidArgument,
+			errMsg:  fmt.Sprintf("Could not create virtio-blk: %s", testVirtioCtrlID),
 		},
 	}
 
@@ -73,14 +77,15 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 				t.Error("response: expected", test.out, "received nil")
 			}
 
-			if err != nil {
-				if !strings.Contains(err.Error(), test.expectedErr.Error()) {
-					t.Error("expected err contains", test.expectedErr, "received", err)
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != test.errCode {
+					t.Error("error code: expected", test.errCode, "received", er.Code())
+				}
+				if er.Message() != test.errMsg {
+					t.Error("error message: expected", test.errMsg, "received", er.Message())
 				}
 			} else {
-				if test.expectedErr != nil {
-					t.Error("expected err contains", test.expectedErr, "received nil")
-				}
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -157,15 +162,15 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -182,12 +187,12 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 		size    int32
 		token   string
 	}{
-		"valid request with invalid SPDK response": {
+		"valid request with empty empty result SPDK response": {
 			"subsystem-test",
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
-			codes.InvalidArgument,
-			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+			codes.OK,
+			"",
 			true,
 			0,
 			"",
@@ -345,15 +350,15 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -368,7 +373,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 		errMsg  string
 		start   bool
 	}{
-		"valid request with invalid SPDK response": {
+		"valid request with empty result SPDK response": {
 			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
@@ -440,15 +445,15 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -540,15 +545,15 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -564,12 +569,12 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 		start   bool
 		missing bool
 	}{
-		"valid request with invalid SPDK response": {
+		"valid request with false as result SPDK response": {
 			testVirtioCtrlName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":false}`},
-			codes.InvalidArgument,
-			fmt.Sprintf("Could not delete NQN:ID %v", "nqn.2022-09.io.spdk:opi3:17"),
+			codes.OK,
+			"",
 			true,
 			false,
 		},
@@ -639,16 +644,18 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 
 			request := &pb.DeleteVirtioBlkRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteVirtioBlk(testEnv.ctx, request)
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
+
 			if reflect.TypeOf(response) != reflect.TypeOf(tt.out) {
 				t.Error("response: expected", reflect.TypeOf(tt.out), "received", reflect.TypeOf(response))
 			}

@@ -51,7 +51,7 @@ func main() {
 	pb.RegisterFrontendNvmeServiceServer(s, frontendOpiNvidiaServer)
 	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiNvidiaServer)
 	pb.RegisterFrontendVirtioScsiServiceServer(s, frontendOpiSpdkServer)
-	pb.RegisterNVMfRemoteControllerServiceServer(s, backendOpiSpdkServer)
+	pb.RegisterNvmeRemoteControllerServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterNullDebugServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterAioControllerServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterMiddleendEncryptionServiceServer(s, middleendOpiSpdkServer)

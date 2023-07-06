@@ -27,11 +27,6 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
-var (
-	errFailedSpdkCall           = status.Error(codes.Unknown, "Failed to execute SPDK call")
-	errUnexpectedSpdkCallResult = status.Error(codes.FailedPrecondition, "Unexpected SPDK call result.")
-)
-
 func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 	sort.Slice(virtioBlks, func(i int, j int) bool {
 		return virtioBlks[i].Name < virtioBlks[j].Name
@@ -73,12 +68,13 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	err := s.rpc.Call("controller_virtio_blk_create", &params, &result)
 	if err != nil {
 		log.Printf("error: %v", err)
-		return nil, fmt.Errorf("%w for %v", errFailedSpdkCall, in)
+		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if result == "" {
-		log.Printf("Could not create: %v", in)
-		return nil, fmt.Errorf("%w for %v", errUnexpectedSpdkCallResult, in)
+		msg := fmt.Sprintf("Could not create virtio-blk: %s", resourceID)
+		log.Print(msg)
+		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	response := server.ProtoClone(in.VirtioBlk)
 	// response.Status = &pb.NvmeControllerStatus{Active: true}

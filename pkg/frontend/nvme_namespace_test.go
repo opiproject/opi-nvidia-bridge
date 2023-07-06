@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 // Copyright (c) 2022-2023 Dell Inc, or its subsidiaries.
 // Copyright (c) 2022 NVIDIA CORPORATION & AFFILIATES. All rights reserved.
+// Copyright (C) 2023 Intel Corporation
 
 // Package frontend implememnts the FrontEnd APIs (host facing) of the storage Server
 package frontend
@@ -175,15 +176,15 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -285,16 +286,18 @@ func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 
 			request := &pb.DeleteNvmeNamespaceRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteNvmeNamespace(testEnv.ctx, request)
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
+
 			if reflect.TypeOf(response) != reflect.TypeOf(tt.out) {
 				t.Error("response: expected", reflect.TypeOf(tt.out), "received", reflect.TypeOf(response))
 			}
@@ -372,15 +375,15 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -397,12 +400,12 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 		size    int32
 		token   string
 	}{
-		"valid request with invalid SPDK response": {
+		"valid request with empty result SPDK response": {
 			testSubsystemName,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name":"","cntlid":0,"Namespaces":null}}`},
-			codes.InvalidArgument,
-			fmt.Sprintf("Could not create NQN: %v", "nqn.2022-09.io.spdk:opi3"),
+			codes.OK,
+			"",
 			true,
 			0,
 			"",
@@ -582,15 +585,15 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -700,15 +703,15 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}
@@ -810,15 +813,15 @@ func TestFrontEnd_NvmeNamespaceStats(t *testing.T) {
 				}
 			}
 
-			if err != nil {
-				if er, ok := status.FromError(err); ok {
-					if er.Code() != tt.errCode {
-						t.Error("error code: expected", tt.errCode, "received", er.Code())
-					}
-					if er.Message() != tt.errMsg {
-						t.Error("error message: expected", tt.errMsg, "received", er.Message())
-					}
+			if er, ok := status.FromError(err); ok {
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
+				}
+			} else {
+				t.Error("expected grpc error status")
 			}
 		})
 	}

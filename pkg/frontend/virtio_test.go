@@ -54,28 +54,28 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 		},
 	}
 
-	for testName, test := range tests {
+	for testName, tt := range tests {
 		t.Run(testName, func(t *testing.T) {
-			testEnv := createTestEnvironment(true, test.spdk)
+			testEnv := createTestEnvironment(true, tt.spdk)
 			defer testEnv.Close()
 
-			if test.out != nil {
-				test.out.Name = testVirtioCtrlName
+			if tt.out != nil {
+				tt.out.Name = testVirtioCtrlName
 			}
 
-			request := &pb.CreateVirtioBlkRequest{VirtioBlk: test.in, VirtioBlkId: testVirtioCtrlID}
+			request := &pb.CreateVirtioBlkRequest{VirtioBlk: tt.in, VirtioBlkId: testVirtioCtrlID}
 			response, err := testEnv.client.CreateVirtioBlk(testEnv.ctx, request)
 
-			if !proto.Equal(response, test.out) {
-				t.Error("response: expected", test.out, "received", response)
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
-				if er.Code() != test.errCode {
-					t.Error("error code: expected", test.errCode, "received", er.Code())
+				if er.Code() != tt.errCode {
+					t.Error("error code: expected", tt.errCode, "received", er.Code())
 				}
-				if er.Message() != test.errMsg {
-					t.Error("error message: expected", test.errMsg, "received", er.Message())
+				if er.Message() != tt.errMsg {
+					t.Error("error message: expected", tt.errMsg, "received", er.Message())
 				}
 			} else {
 				t.Error("expected grpc error status")

@@ -7,7 +7,6 @@
 package frontend
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
@@ -168,12 +167,9 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 
 			request := &pb.CreateNvmeNamespaceRequest{NvmeNamespace: tt.in, NvmeNamespaceId: tt.id}
 			response, err := testEnv.client.CreateNvmeNamespace(testEnv.ctx, request)
-			if response != nil {
-				mtt, _ := proto.Marshal(tt.out)
-				mResponse, _ := proto.Marshal(response)
-				if !bytes.Equal(mtt, mResponse) {
-					t.Error("response: expected", tt.out, "received", response)
-				}
+
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -371,7 +367,8 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 
 			request := &pb.UpdateNvmeNamespaceRequest{NvmeNamespace: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateNvmeNamespace(testEnv.ctx, request)
-			if response != nil {
+
+			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 
@@ -579,10 +576,14 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 
 			request := &pb.ListNvmeNamespacesRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListNvmeNamespaces(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.NvmeNamespaces, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.NvmeNamespaces)
-				}
+
+			if !server.EqualProtoSlices(response.GetNvmeNamespaces(), tt.out) {
+				t.Error("response: expected", tt.out, "received", response.GetNvmeNamespaces())
+			}
+
+			// Empty NextPageToken indicates end of results list
+			if tt.size != 1 && response.GetNextPageToken() != "" {
+				t.Error("Expected end of results, received non-empty next page token", response.GetNextPageToken())
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -694,13 +695,9 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 
 			request := &pb.GetNvmeNamespaceRequest{Name: tt.in}
 			response, err := testEnv.client.GetNvmeNamespace(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
-					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
-				}
-				if !reflect.DeepEqual(response.Status, tt.out.Status) {
-					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
-				}
+
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -807,10 +804,9 @@ func TestFrontEnd_NvmeNamespaceStats(t *testing.T) {
 
 			request := &pb.NvmeNamespaceStatsRequest{NamespaceId: &pc.ObjectKey{Value: tt.in}}
 			response, err := testEnv.client.NvmeNamespaceStats(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.Stats, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.Stats)
-				}
+
+			if !proto.Equal(response.GetStats(), tt.out) {
+				t.Error("response: expected", tt.out, "received", response.GetStats())
 			}
 
 			if er, ok := status.FromError(err); ok {

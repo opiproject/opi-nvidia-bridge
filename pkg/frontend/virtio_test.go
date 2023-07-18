@@ -7,7 +7,6 @@
 package frontend
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
@@ -66,15 +65,9 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 
 			request := &pb.CreateVirtioBlkRequest{VirtioBlk: test.in, VirtioBlkId: testVirtioCtrlID}
 			response, err := testEnv.client.CreateVirtioBlk(testEnv.ctx, request)
-			if response != nil {
-				wantOut, _ := proto.Marshal(test.out)
-				gotOut, _ := proto.Marshal(response)
 
-				if !bytes.Equal(wantOut, gotOut) {
-					t.Error("response: expected", test.out, "received", response)
-				}
-			} else if test.out != nil {
-				t.Error("response: expected", test.out, "received nil")
+			if !proto.Equal(response, test.out) {
+				t.Error("response: expected", test.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -158,7 +151,8 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 
 			request := &pb.UpdateVirtioBlkRequest{VirtioBlk: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateVirtioBlk(testEnv.ctx, request)
-			if response != nil {
+
+			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 
@@ -344,10 +338,13 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			request := &pb.ListVirtioBlksRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListVirtioBlks(testEnv.ctx, request)
 
-			if response != nil {
-				if !reflect.DeepEqual(response.VirtioBlks, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.VirtioBlks)
-				}
+			if !server.EqualProtoSlices(response.GetVirtioBlks(), tt.out) {
+				t.Error("response: expected", tt.out, "received", response.GetVirtioBlks())
+			}
+
+			// Empty NextPageToken indicates end of results list
+			if tt.size != 1 && response.GetNextPageToken() != "" {
+				t.Error("Expected end of results, received non-empty next page token", response.GetNextPageToken())
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -437,12 +434,9 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 
 			request := &pb.GetVirtioBlkRequest{Name: tt.in}
 			response, err := testEnv.client.GetVirtioBlk(testEnv.ctx, request)
-			if response != nil {
-				wantOut, _ := proto.Marshal(tt.out)
-				gotOut, _ := proto.Marshal(response)
-				if !bytes.Equal(wantOut, gotOut) {
-					t.Error("response: expected", tt.out, "received", response)
-				}
+
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -539,10 +533,9 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 
 			request := &pb.VirtioBlkStatsRequest{ControllerId: &pc.ObjectKey{Value: tt.in}}
 			response, err := testEnv.client.VirtioBlkStats(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.Stats, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.Stats)
-				}
+
+			if !proto.Equal(response.GetStats(), tt.out) {
+				t.Error("response: expected", tt.out, "received", response.GetStats())
 			}
 
 			if er, ok := status.FromError(err); ok {

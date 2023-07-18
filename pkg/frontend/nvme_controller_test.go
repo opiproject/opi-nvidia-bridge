@@ -7,7 +7,6 @@
 package frontend
 
 import (
-	"bytes"
 	"fmt"
 	"reflect"
 	"testing"
@@ -162,12 +161,9 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 
 			request := &pb.CreateNvmeControllerRequest{NvmeController: tt.in, NvmeControllerId: tt.id}
 			response, err := testEnv.client.CreateNvmeController(testEnv.ctx, request)
-			if response != nil {
-				mtt, _ := proto.Marshal(tt.out)
-				mResponse, _ := proto.Marshal(response)
-				if !bytes.Equal(mtt, mResponse) {
-					t.Error("response: expected", tt.out, "received", response)
-				}
+
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -365,7 +361,8 @@ func TestFrontEnd_UpdateNvmeController(t *testing.T) {
 
 			request := &pb.UpdateNvmeControllerRequest{NvmeController: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateNvmeController(testEnv.ctx, request)
-			if response != nil {
+
+			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 
@@ -563,10 +560,14 @@ func TestFrontEnd_ListNvmeControllers(t *testing.T) {
 
 			request := &pb.ListNvmeControllersRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListNvmeControllers(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.NvmeControllers, tt.out) {
-					t.Error("response: expected", tt.out, "received", response.NvmeControllers)
-				}
+
+			if !server.EqualProtoSlices(response.GetNvmeControllers(), tt.out) {
+				t.Error("response: expected", tt.out, "received", response.GetNvmeControllers())
+			}
+
+			// Empty NextPageToken indicates end of results list
+			if tt.size != 1 && response.GetNextPageToken() != "" {
+				t.Error("Expected end of results, received non-empty next page token", response.GetNextPageToken())
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -669,13 +670,9 @@ func TestFrontEnd_GetNvmeController(t *testing.T) {
 
 			request := &pb.GetNvmeControllerRequest{Name: tt.in}
 			response, err := testEnv.client.GetNvmeController(testEnv.ctx, request)
-			if response != nil {
-				if !reflect.DeepEqual(response.Spec, tt.out.Spec) {
-					t.Error("response: expected", tt.out.GetSpec(), "received", response.GetSpec())
-				}
-				if !reflect.DeepEqual(response.Status, tt.out.Status) {
-					t.Error("response: expected", tt.out.GetStatus(), "received", response.GetStatus())
-				}
+
+			if !proto.Equal(response, tt.out) {
+				t.Error("response: expected", tt.out, "received", response)
 			}
 
 			if er, ok := status.FromError(err); ok {
@@ -731,7 +728,8 @@ func TestFrontEnd_NvmeControllerStats(t *testing.T) {
 
 			request := &pb.NvmeControllerStatsRequest{Id: &pc.ObjectKey{Value: tt.in}}
 			response, err := testEnv.client.NvmeControllerStats(testEnv.ctx, request)
-			if response != nil {
+
+			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)
 			}
 

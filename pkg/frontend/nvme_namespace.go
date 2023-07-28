@@ -43,7 +43,7 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return nil, err
 	}
 	// check input parameters validity
-	if in.NvmeNamespace.Spec == nil || in.NvmeNamespace.Spec.SubsystemId == nil || in.NvmeNamespace.Spec.SubsystemId.Value == "" {
+	if in.NvmeNamespace.Spec == nil || in.NvmeNamespace.Spec.SubsystemNameRef == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
@@ -65,16 +65,16 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return namespace, nil
 	}
 	// not found, so create a new one
-	subsys, ok := s.Subsystems[in.NvmeNamespace.Spec.SubsystemId.Value]
+	subsys, ok := s.Subsystems[in.NvmeNamespace.Spec.SubsystemNameRef]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Spec.SubsystemId.Value)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Spec.SubsystemNameRef)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// TODO: do lookup through VolumeId key instead of using it's value
 	params := models.NvdaControllerNvmeNamespaceAttachParams{
 		BdevType: "spdk",
-		Bdev:     in.NvmeNamespace.Spec.VolumeId.Value,
+		Bdev:     in.NvmeNamespace.Spec.VolumeNameRef,
 		Nsid:     int(in.NvmeNamespace.Spec.HostNsid),
 		Subnqn:   subsys.Spec.Nqn,
 		Cntlid:   0,
@@ -123,9 +123,9 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	subsys, ok := s.Subsystems[namespace.Spec.SubsystemId.Value]
+	subsys, ok := s.Subsystems[namespace.Spec.SubsystemNameRef]
 	if !ok {
-		err := fmt.Errorf("unable to find subsystem %s", namespace.Spec.SubsystemId.Value)
+		err := fmt.Errorf("unable to find subsystem %s", namespace.Spec.SubsystemNameRef)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -144,7 +144,7 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
-		msg := fmt.Sprintf("Could not delete NS: %s", namespace.Spec.SubsystemId.Value)
+		msg := fmt.Sprintf("Could not delete NS: %s", namespace.Spec.SubsystemNameRef)
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
@@ -253,9 +253,9 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	subsys, ok := s.Subsystems[namespace.Spec.SubsystemId.Value]
+	subsys, ok := s.Subsystems[namespace.Spec.SubsystemNameRef]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", namespace.Spec.SubsystemId.Value)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", namespace.Spec.SubsystemNameRef)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -291,14 +291,14 @@ func (s *Server) NvmeNamespaceStats(_ context.Context, in *pb.NvmeNamespaceStats
 		return nil, err
 	}
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
-	if err := resourcename.Validate(in.NamespaceId.Value); err != nil {
+	if err := resourcename.Validate(in.Name); err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
-	namespace, ok := s.Namespaces[in.NamespaceId.Value]
+	namespace, ok := s.Namespaces[in.Name]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NamespaceId.Value)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -311,15 +311,15 @@ func (s *Server) NvmeNamespaceStats(_ context.Context, in *pb.NvmeNamespaceStats
 	log.Printf("Received from SPDK: %v", result)
 	for _, c := range result.Controllers {
 		for _, r := range c.Bdevs {
-			if r.BdevName == namespace.Spec.VolumeId.Value {
-				return &pb.NvmeNamespaceStatsResponse{Id: in.NamespaceId, Stats: &pb.VolumeStats{
+			if r.BdevName == namespace.Spec.VolumeNameRef {
+				return &pb.NvmeNamespaceStatsResponse{Name: in.Name, Stats: &pb.VolumeStats{
 					ReadOpsCount:  int32(r.ReadIos),
 					WriteOpsCount: int32(r.WriteIos),
 				}}, nil
 			}
 		}
 	}
-	msg := fmt.Sprintf("Could not find BdevName: %s", namespace.Spec.VolumeId.Value)
+	msg := fmt.Sprintf("Could not find BdevName: %s", namespace.Spec.VolumeNameRef)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

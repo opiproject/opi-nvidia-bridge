@@ -17,7 +17,6 @@ import (
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
-	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 )
@@ -688,7 +687,7 @@ func TestFrontEnd_NvmeSubsystemStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
 
-			request := &pb.NvmeSubsystemStatsRequest{SubsystemId: &pc.ObjectKey{Value: tt.in}}
+			request := &pb.NvmeSubsystemStatsRequest{SubsystemNameRef: tt.in}
 			response, err := testEnv.client.NvmeSubsystemStats(testEnv.ctx, request)
 
 			if !proto.Equal(response, tt.out) {

@@ -42,7 +42,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		return nil, err
 	}
 	// check input parameters validity
-	if in.NvmeController.Spec == nil || in.NvmeController.Spec.SubsystemId == nil || in.NvmeController.Spec.SubsystemId.Value == "" {
+	if in.NvmeController.Spec == nil || in.NvmeController.Spec.SubsystemNameRef == "" {
 		return nil, status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
 	}
 	// see https://google.aip.dev/133#user-specified-ids
@@ -64,9 +64,9 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		return controller, nil
 	}
 	// not found, so create a new one
-	subsys, ok := s.Subsystems[in.NvmeController.Spec.SubsystemId.Value]
+	subsys, ok := s.Subsystems[in.NvmeController.Spec.SubsystemNameRef]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeController.Spec.SubsystemId.Value)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeController.Spec.SubsystemNameRef)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -119,9 +119,9 @@ func (s *Server) DeleteNvmeController(_ context.Context, in *pb.DeleteNvmeContro
 		}
 		return nil, fmt.Errorf("error finding controller %s", in.Name)
 	}
-	subsys, ok := s.Subsystems[controller.Spec.SubsystemId.Value]
+	subsys, ok := s.Subsystems[controller.Spec.SubsystemNameRef]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", controller.Spec.SubsystemId.Value)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", controller.Spec.SubsystemNameRef)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -271,7 +271,7 @@ func (s *Server) NvmeControllerStats(_ context.Context, in *pb.NvmeControllerSta
 		return nil, err
 	}
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
-	if err := resourcename.Validate(in.Id.Value); err != nil {
+	if err := resourcename.Validate(in.Name); err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}

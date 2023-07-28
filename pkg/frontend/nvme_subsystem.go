@@ -259,7 +259,7 @@ func (s *Server) NvmeSubsystemStats(_ context.Context, in *pb.NvmeSubsystemStats
 		return nil, err
 	}
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
-	if err := resourcename.Validate(in.SubsystemId.Value); err != nil {
+	if err := resourcename.Validate(in.SubsystemNameRef); err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}

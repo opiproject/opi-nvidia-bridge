@@ -98,7 +98,7 @@ var (
 	testControllerName = server.ResourceIDToVolumeName(testControllerID)
 	testController     = pb.NvmeController{
 		Spec: &pb.NvmeControllerSpec{
-			SubsystemId:      &pc.ObjectKey{Value: testSubsystemName},
+			SubsystemNameRef: testSubsystemName,
 			PcieId:           &pb.PciEndpoint{PhysicalFunction: 1, VirtualFunction: 2},
 			NvmeControllerId: 17,
 		},
@@ -110,9 +110,9 @@ var (
 	testNamespaceName = server.ResourceIDToVolumeName(testNamespaceID)
 	testNamespace     = pb.NvmeNamespace{
 		Spec: &pb.NvmeNamespaceSpec{
-			HostNsid:    22,
-			SubsystemId: &pc.ObjectKey{Value: testSubsystemName},
-			VolumeId:    &pc.ObjectKey{Value: "Malloc1"},
+			HostNsid:         22,
+			SubsystemNameRef: testSubsystemName,
+			VolumeNameRef:    "Malloc1",
 		},
 		Status: &pb.NvmeNamespaceStatus{
 			PciState:     2,

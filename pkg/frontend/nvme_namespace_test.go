@@ -139,6 +139,15 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			"",
 			true,
 		},
+		"no required field": {
+			testControllerID,
+			nil,
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: nvme_namespace",
+			false,
+		},
 	}
 
 	// run tests
@@ -249,6 +258,14 @@ func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 			[]string{},
 			codes.Unknown,
 			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+		},
+		"no required field": {
+			"",
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: name",
 			false,
 		},
 	}
@@ -526,6 +543,15 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 			0,
 			"",
 		},
+		"no required field": {
+			"",
+			[]*pb.NvmeNamespace{},
+			[]string{},
+			codes.Unknown,
+			"missing required field: parent",
+			0,
+			"",
+		},
 	}
 
 	// run tests
@@ -636,6 +662,13 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 			[]string{},
 			codes.Unknown,
 			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+		},
+		"no required field": {
+			"",
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: name",
 		},
 	}
 

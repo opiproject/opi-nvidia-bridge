@@ -135,6 +135,15 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			"",
 			true,
 		},
+		"no required field": {
+			testControllerID,
+			nil,
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: nvme_subsystem",
+			false,
+		},
 	}
 
 	// run tests
@@ -245,6 +254,14 @@ func TestFrontEnd_DeleteNvmeSubsystem(t *testing.T) {
 			[]string{},
 			codes.Unknown,
 			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+			false,
+		},
+		"no required field": {
+			"",
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: name",
 			false,
 		},
 	}
@@ -364,7 +381,9 @@ func TestFrontEnd_UpdateNvmeSubsystem(t *testing.T) {
 }
 
 func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
+	testParent := "todo"
 	tests := map[string]struct {
+		in      string
 		out     []*pb.NvmeSubsystem
 		spdk    []string
 		errCode codes.Code
@@ -373,6 +392,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 		token   string
 	}{
 		"valid request with empty result SPDK response": {
+			testParent,
 			nil,
 			[]string{`{"id":%d,"error":{"code":0,"message":""},"result":[]}`},
 			codes.OK,
@@ -381,6 +401,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"valid request with empty SPDK response": {
+			testParent,
 			nil,
 			[]string{""},
 			codes.Unknown,
@@ -389,6 +410,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"valid request with ID mismatch SPDK response": {
+			testParent,
 			nil,
 			[]string{`{"id":0,"error":{"code":0,"message":""},"result":[]}`},
 			codes.Unknown,
@@ -397,6 +419,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"valid request with error code from SPDK response": {
+			testParent,
 			nil,
 			[]string{`{"id":%d,"error":{"code":1,"message":"myopierr"},"result":[]}`},
 			codes.Unknown,
@@ -405,6 +428,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination negative": {
+			testParent,
 			nil,
 			[]string{},
 			codes.InvalidArgument,
@@ -413,6 +437,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination error": {
+			testParent,
 			nil,
 			[]string{},
 			codes.NotFound,
@@ -421,6 +446,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"unknown-pagination-token",
 		},
 		"pagination": {
+			testParent,
 			[]*pb.NvmeSubsystem{
 				{
 					Spec: &pb.NvmeSubsystemSpec{
@@ -437,6 +463,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination overflow": {
+			testParent,
 			[]*pb.NvmeSubsystem{
 				{
 					Spec: &pb.NvmeSubsystemSpec{
@@ -468,6 +495,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"",
 		},
 		"pagination offset": {
+			testParent,
 			[]*pb.NvmeSubsystem{
 				{
 					Spec: &pb.NvmeSubsystemSpec{
@@ -484,6 +512,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			"existing-pagination-token",
 		},
 		"valid request with valid SPDK response": {
+			testParent,
 			[]*pb.NvmeSubsystem{
 				{
 					Spec: &pb.NvmeSubsystemSpec{
@@ -514,6 +543,15 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			0,
 			"",
 		},
+		"no required field": {
+			"",
+			[]*pb.NvmeSubsystem{},
+			[]string{},
+			codes.Unknown,
+			"missing required field: parent",
+			0,
+			"",
+		},
 	}
 
 	// run tests
@@ -527,7 +565,7 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
-			request := &pb.ListNvmeSubsystemsRequest{Parent: "todo", PageSize: tt.size, PageToken: tt.token}
+			request := &pb.ListNvmeSubsystemsRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListNvmeSubsystems(testEnv.ctx, request)
 
 			if !server.EqualProtoSlices(response.GetNvmeSubsystems(), tt.out) {
@@ -619,6 +657,13 @@ func TestFrontEnd_GetNvmeSubsystem(t *testing.T) {
 			[]string{},
 			codes.Unknown,
 			fmt.Sprintf("segment '%s': not a valid DNS name", "-ABC-DEF"),
+		},
+		"no required field": {
+			"",
+			nil,
+			[]string{},
+			codes.Unknown,
+			"missing required field: name",
 		},
 	}
 

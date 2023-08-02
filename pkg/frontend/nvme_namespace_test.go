@@ -703,7 +703,7 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NvmeNamespaceStats(t *testing.T) {
+func TestFrontEnd_StatsNvmeNamespace(t *testing.T) {
 	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
@@ -782,8 +782,8 @@ func TestFrontEnd_NvmeNamespaceStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
 
-			request := &pb.NvmeNamespaceStatsRequest{Name: tt.in}
-			response, err := testEnv.client.NvmeNamespaceStats(testEnv.ctx, request)
+			request := &pb.StatsNvmeNamespaceRequest{Name: tt.in}
+			response, err := testEnv.client.StatsNvmeNamespace(testEnv.ctx, request)
 
 			if !proto.Equal(response.GetStats(), tt.out) {
 				t.Error("response: expected", tt.out, "received", response.GetStats())

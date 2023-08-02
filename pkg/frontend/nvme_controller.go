@@ -262,9 +262,9 @@ func (s *Server) GetNvmeController(_ context.Context, in *pb.GetNvmeControllerRe
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-// NvmeControllerStats gets an Nvme controller stats
-func (s *Server) NvmeControllerStats(_ context.Context, in *pb.NvmeControllerStatsRequest) (*pb.NvmeControllerStatsResponse, error) {
-	log.Printf("NvmeControllerStats: Received from client: %v", in)
+// StatsNvmeController gets an Nvme controller stats
+func (s *Server) StatsNvmeController(_ context.Context, in *pb.StatsNvmeControllerRequest) (*pb.StatsNvmeControllerResponse, error) {
+	log.Printf("StatsNvmeController: Received from client: %v", in)
 	// check required fields
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
 		log.Printf("error: %v", err)
@@ -276,5 +276,5 @@ func (s *Server) NvmeControllerStats(_ context.Context, in *pb.NvmeControllerSta
 		return nil, err
 	}
 	// fetch object from the database
-	return nil, status.Errorf(codes.Unimplemented, "NvmeControllerStats method is not implemented")
+	return nil, status.Errorf(codes.Unimplemented, "StatsNvmeController method is not implemented")
 }

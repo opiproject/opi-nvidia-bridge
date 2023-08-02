@@ -698,10 +698,10 @@ func TestFrontEnd_GetNvmeSubsystem(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NvmeSubsystemStats(t *testing.T) {
+func TestFrontEnd_StatsNvmeSubsystem(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NvmeSubsystemStatsResponse
+		out     *pb.StatsNvmeSubsystemResponse
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -732,8 +732,8 @@ func TestFrontEnd_NvmeSubsystemStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
 
-			request := &pb.NvmeSubsystemStatsRequest{SubsystemNameRef: tt.in}
-			response, err := testEnv.client.NvmeSubsystemStats(testEnv.ctx, request)
+			request := &pb.StatsNvmeSubsystemRequest{Name: tt.in}
+			response, err := testEnv.client.StatsNvmeSubsystem(testEnv.ctx, request)
 
 			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)

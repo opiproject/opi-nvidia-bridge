@@ -282,9 +282,9 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-// NvmeNamespaceStats gets an Nvme namespace stats
-func (s *Server) NvmeNamespaceStats(_ context.Context, in *pb.NvmeNamespaceStatsRequest) (*pb.NvmeNamespaceStatsResponse, error) {
-	log.Printf("NvmeNamespaceStats: Received from client: %v", in)
+// StatsNvmeNamespace gets an Nvme namespace stats
+func (s *Server) StatsNvmeNamespace(_ context.Context, in *pb.StatsNvmeNamespaceRequest) (*pb.StatsNvmeNamespaceResponse, error) {
+	log.Printf("StatsNvmeNamespace: Received from client: %v", in)
 	// check required fields
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
 		log.Printf("error: %v", err)
@@ -312,7 +312,7 @@ func (s *Server) NvmeNamespaceStats(_ context.Context, in *pb.NvmeNamespaceStats
 	for _, c := range result.Controllers {
 		for _, r := range c.Bdevs {
 			if r.BdevName == namespace.Spec.VolumeNameRef {
-				return &pb.NvmeNamespaceStatsResponse{Name: in.Name, Stats: &pb.VolumeStats{
+				return &pb.StatsNvmeNamespaceResponse{Stats: &pb.VolumeStats{
 					ReadOpsCount:  int32(r.ReadIos),
 					WriteOpsCount: int32(r.WriteIos),
 				}}, nil

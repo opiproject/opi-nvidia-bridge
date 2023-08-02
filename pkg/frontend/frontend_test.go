@@ -16,7 +16,6 @@ import (
 	"google.golang.org/grpc/test/bufconn"
 
 	"github.com/opiproject/gospdk/spdk"
-	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 )
@@ -122,8 +121,8 @@ var (
 	testVirtioCtrlID   = "virtio-blk-42"
 	testVirtioCtrlName = server.ResourceIDToVolumeName(testVirtioCtrlID)
 	testVirtioCtrl     = pb.VirtioBlk{
-		PcieId:   &pb.PciEndpoint{PhysicalFunction: 42},
-		VolumeId: &pc.ObjectKey{Value: "Malloc42"},
-		MaxIoQps: 1,
+		PcieId:        &pb.PciEndpoint{PhysicalFunction: 42},
+		VolumeNameRef: "Malloc42",
+		MaxIoQps:      1,
 	}
 )

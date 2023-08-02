@@ -12,7 +12,6 @@ import (
 	"path"
 	"sort"
 
-	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
@@ -63,7 +62,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	// not found, so create a new one
 	params := models.NvdaControllerVirtioBlkCreateParams{
 		Serial: resourceID,
-		Bdev:   in.VirtioBlk.VolumeId.Value,
+		Bdev:   in.VirtioBlk.VolumeNameRef,
 		PfID:   int(in.VirtioBlk.PcieId.PhysicalFunction),
 		// VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),
 		NumQueues:        int(in.VirtioBlk.MaxIoQps),
@@ -189,9 +188,9 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		r := &result[i]
 		if r.Type == "virtio_blk" {
 			ctrl := &pb.VirtioBlk{
-				Name:     server.ResourceIDToVolumeName(r.Name),
-				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
-				VolumeId: &pc.ObjectKey{Value: "TBD"}}
+				Name:          server.ResourceIDToVolumeName(r.Name),
+				PcieId:        &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
+				VolumeNameRef: "TBD"}
 			Blobarray = append(Blobarray, ctrl)
 		}
 	}
@@ -231,9 +230,9 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		r := &result[i]
 		if r.Name == resourceID && r.Type == "virtio_blk" {
 			return &pb.VirtioBlk{
-				Name:     server.ResourceIDToVolumeName(r.Name),
-				PcieId:   &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
-				VolumeId: &pc.ObjectKey{Value: "TBD"}}, nil
+				Name:          server.ResourceIDToVolumeName(r.Name),
+				PcieId:        &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
+				VolumeNameRef: "TBD"}, nil
 		}
 	}
 	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
@@ -241,11 +240,11 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
-// VirtioBlkStats gets a Virtio block device stats
-func (s *Server) VirtioBlkStats(_ context.Context, in *pb.VirtioBlkStatsRequest) (*pb.VirtioBlkStatsResponse, error) {
+// StatsVirtioBlk gets a Virtio block device stats
+func (s *Server) StatsVirtioBlk(_ context.Context, in *pb.StatsVirtioBlkRequest) (*pb.StatsVirtioBlkResponse, error) {
 	log.Printf("VirtioBlkStats: Received from client: %v", in)
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
-	if err := resourcename.Validate(in.ControllerId.Value); err != nil {
+	if err := resourcename.Validate(in.Name); err != nil {
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -259,15 +258,15 @@ func (s *Server) VirtioBlkStats(_ context.Context, in *pb.VirtioBlkStatsRequest)
 	log.Printf("Received from SPDK: %v", result)
 	for _, c := range result.Controllers {
 		for _, r := range c.Bdevs {
-			if r.BdevName == in.ControllerId.Value {
-				return &pb.VirtioBlkStatsResponse{Id: in.ControllerId, Stats: &pb.VolumeStats{
+			if r.BdevName == in.Name {
+				return &pb.StatsVirtioBlkResponse{Stats: &pb.VolumeStats{
 					ReadOpsCount:  int32(r.ReadIos),
 					WriteOpsCount: int32(r.WriteIos),
 				}}, nil
 			}
 		}
 	}
-	msg := fmt.Sprintf("Could not find Controller: %s", in.ControllerId.Value)
+	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

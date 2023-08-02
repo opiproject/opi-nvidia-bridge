@@ -679,10 +679,10 @@ func TestFrontEnd_GetNvmeController(t *testing.T) {
 	}
 }
 
-func TestFrontEnd_NvmeControllerStats(t *testing.T) {
+func TestFrontEnd_StatsNvmeController(t *testing.T) {
 	tests := map[string]struct {
 		in      string
-		out     *pb.NvmeControllerStatsResponse
+		out     *pb.StatsNvmeControllerResponse
 		spdk    []string
 		errCode codes.Code
 		errMsg  string
@@ -692,7 +692,7 @@ func TestFrontEnd_NvmeControllerStats(t *testing.T) {
 			nil,
 			[]string{},
 			codes.Unimplemented,
-			fmt.Sprintf("%v method is not implemented", "NvmeControllerStats"),
+			fmt.Sprintf("%v method is not implemented", "StatsNvmeController"),
 		},
 		"malformed name": {
 			"-ABC-DEF",
@@ -713,8 +713,8 @@ func TestFrontEnd_NvmeControllerStats(t *testing.T) {
 			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
 			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
 
-			request := &pb.NvmeControllerStatsRequest{Name: tt.in}
-			response, err := testEnv.client.NvmeControllerStats(testEnv.ctx, request)
+			request := &pb.StatsNvmeControllerRequest{Name: tt.in}
+			response, err := testEnv.client.StatsNvmeController(testEnv.ctx, request)
 
 			if !proto.Equal(response, tt.out) {
 				t.Error("response: expected", tt.out, "received", response)

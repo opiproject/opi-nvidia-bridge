@@ -33,7 +33,7 @@ services:
     depends_on:
       opi-nvidia-server:
         condition: service_healthy
-    command: storagetest --addr=opi-nvidia-server:50051
+    command: storage test --addr=opi-nvidia-server:50051
 
 networks:
   opi:

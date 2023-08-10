@@ -354,6 +354,7 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 			&fieldmaskpb.FieldMask{Paths: []string{"*", "author"}},
 			&pb.NvmeNamespace{
 				Name: testNamespaceName,
+				Spec: testNamespace.Spec,
 			},
 			nil,
 			[]string{},
@@ -364,6 +365,7 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 			nil,
 			&pb.NvmeNamespace{
 				Name: testNamespaceName,
+				Spec: testNamespace.Spec,
 			},
 			nil,
 			[]string{},
@@ -374,6 +376,7 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 			nil,
 			&pb.NvmeNamespace{
 				Name: server.ResourceIDToVolumeName("unknown-id"),
+				Spec: testNamespace.Spec,
 			},
 			nil,
 			[]string{},
@@ -382,7 +385,10 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 		},
 		"malformed name": {
 			nil,
-			&pb.NvmeNamespace{Name: "-ABC-DEF"},
+			&pb.NvmeNamespace{
+				Name: "-ABC-DEF",
+				Spec: testNamespace.Spec,
+			},
 			nil,
 			[]string{},
 			codes.Unknown,

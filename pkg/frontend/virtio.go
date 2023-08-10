@@ -24,6 +24,7 @@ import (
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 	"google.golang.org/protobuf/types/known/emptypb"
+	"google.golang.org/protobuf/types/known/wrapperspb"
 )
 
 func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
@@ -63,7 +64,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	params := models.NvdaControllerVirtioBlkCreateParams{
 		Serial: resourceID,
 		Bdev:   in.VirtioBlk.VolumeNameRef,
-		PfID:   int(in.VirtioBlk.PcieId.PhysicalFunction),
+		PfID:   int(in.VirtioBlk.PcieId.PhysicalFunction.Value),
 		// VfID:             int(in.VirtioBlk.PcieId.VirtualFunction),
 		NumQueues:        int(in.VirtioBlk.MaxIoQps),
 		BdevType:         "spdk",
@@ -188,8 +189,12 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		r := &result[i]
 		if r.Type == "virtio_blk" {
 			ctrl := &pb.VirtioBlk{
-				Name:          server.ResourceIDToVolumeName(r.Name),
-				PcieId:        &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
+				Name: server.ResourceIDToVolumeName(r.Name),
+				PcieId: &pb.PciEndpoint{
+					PhysicalFunction: wrapperspb.Int32(int32(r.PciIndex)),
+					VirtualFunction:  wrapperspb.Int32(0),
+					PortId:           wrapperspb.Int32(0),
+				},
 				VolumeNameRef: "TBD"}
 			Blobarray = append(Blobarray, ctrl)
 		}
@@ -230,8 +235,12 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		r := &result[i]
 		if r.Name == resourceID && r.Type == "virtio_blk" {
 			return &pb.VirtioBlk{
-				Name:          server.ResourceIDToVolumeName(r.Name),
-				PcieId:        &pb.PciEndpoint{PhysicalFunction: int32(r.PciIndex)},
+				Name: server.ResourceIDToVolumeName(r.Name),
+				PcieId: &pb.PciEndpoint{
+					PhysicalFunction: wrapperspb.Int32(int32(r.PciIndex)),
+					VirtualFunction:  wrapperspb.Int32(0),
+					PortId:           wrapperspb.Int32(0),
+				},
 				VolumeNameRef: "TBD"}, nil
 		}
 	}

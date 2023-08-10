@@ -24,12 +24,13 @@ import (
 	"go.einride.tech/aip/resourcename"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
+	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 )
 
 func sortNvmeControllers(controllers []*pb.NvmeController) {
 	sort.Slice(controllers, func(i int, j int) bool {
-		return controllers[i].Spec.NvmeControllerId < controllers[j].Spec.NvmeControllerId
+		return *controllers[i].Spec.NvmeControllerId < *controllers[j].Spec.NvmeControllerId
 	})
 }
 
@@ -79,7 +80,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 	params := models.NvdaControllerNvmeCreateParams{
 		Nqn:              subsys.Spec.Nqn,
 		EmulationManager: "mlx5_0",
-		PfID:             int(in.NvmeController.Spec.PcieId.PhysicalFunction),
+		PfID:             int(in.NvmeController.Spec.PcieId.PhysicalFunction.Value),
 		// VfID:             int(in.NvmeController.Spec.PcieId.VirtualFunction),
 		// MaxNamespaces:    int(in.NvmeController.Spec.MaxNsq),
 		// NrIoQueues:       int(in.NvmeController.Spec.MaxNcq),
@@ -97,7 +98,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	response := server.ProtoClone(in.NvmeController)
-	response.Spec.NvmeControllerId = int32(result.Cntlid)
+	response.Spec.NvmeControllerId = proto.Int32(int32(result.Cntlid))
 	response.Status = &pb.NvmeControllerStatus{Active: true}
 	s.Controllers[in.NvmeController.Name] = response
 	return response, nil
@@ -133,7 +134,7 @@ func (s *Server) DeleteNvmeController(_ context.Context, in *pb.DeleteNvmeContro
 
 	params := models.NvdaControllerNvmeDeleteParams{
 		Subnqn: subsys.Spec.Nqn,
-		Cntlid: int(controller.Spec.NvmeControllerId),
+		Cntlid: int(*controller.Spec.NvmeControllerId),
 	}
 	var result models.NvdaControllerNvmeDeleteResult
 	err := s.rpc.Call("controller_nvme_delete", &params, &result)
@@ -143,7 +144,7 @@ func (s *Server) DeleteNvmeController(_ context.Context, in *pb.DeleteNvmeContro
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
-		msg := fmt.Sprintf("Could not delete NQN:ID %s:%d", subsys.Spec.Nqn, controller.Spec.NvmeControllerId)
+		msg := fmt.Sprintf("Could not delete NQN:ID %s:%d", subsys.Spec.Nqn, *controller.Spec.NvmeControllerId)
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
@@ -222,7 +223,7 @@ func (s *Server) ListNvmeControllers(_ context.Context, in *pb.ListNvmeControlle
 	for i := range result {
 		r := &result[i]
 		if r.Subnqn == subsys.Spec.Nqn && r.Type == "nvme" {
-			Blobarray[i] = &pb.NvmeController{Spec: &pb.NvmeControllerSpec{NvmeControllerId: int32(r.Cntlid)}}
+			Blobarray[i] = &pb.NvmeController{Spec: &pb.NvmeControllerSpec{NvmeControllerId: proto.Int32(int32(r.Cntlid))}}
 		}
 	}
 	sortNvmeControllers(Blobarray)
@@ -258,11 +259,15 @@ func (s *Server) GetNvmeController(_ context.Context, in *pb.GetNvmeControllerRe
 	log.Printf("Received from SPDK: %v", result)
 	for i := range result {
 		r := &result[i]
-		if r.Cntlid == int(controller.Spec.NvmeControllerId) && r.Type == "nvme" {
-			return &pb.NvmeController{Spec: &pb.NvmeControllerSpec{NvmeControllerId: int32(r.Cntlid)}, Status: &pb.NvmeControllerStatus{Active: true}}, nil
+		if r.Cntlid == int(*controller.Spec.NvmeControllerId) && r.Type == "nvme" {
+			return &pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
+					NvmeControllerId: proto.Int32(int32(r.Cntlid)),
+				},
+				Status: &pb.NvmeControllerStatus{Active: true}}, nil
 		}
 	}
-	msg := fmt.Sprintf("Could not find NvmeControllerId: %d", controller.Spec.NvmeControllerId)
+	msg := fmt.Sprintf("Could not find NvmeControllerId: %d", *controller.Spec.NvmeControllerId)
 	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

@@ -3,7 +3,7 @@ module github.com/opiproject/opi-nvidia-bridge
 go 1.19
 
 require (
-	github.com/google/uuid v1.3.0
+	github.com/google/uuid v1.3.1
 	github.com/opiproject/gospdk v0.0.0-20230812114418-14a6e1aa7495
 	github.com/opiproject/opi-api v0.0.0-20230814154012-8e3a291121b9
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230819044000-c1bfb463f83b

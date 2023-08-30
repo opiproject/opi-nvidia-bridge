@@ -135,4 +135,10 @@ var (
 		VolumeNameRef: "Malloc42",
 		MaxIoQps:      1,
 	}
+	checkGlobalTestProtoObjectsNotChanged = server.CheckTestProtoObjectsNotChanged(
+		&testSubsystem,
+		&testController,
+		&testNamespace,
+		&testVirtioCtrl,
+	)
 )

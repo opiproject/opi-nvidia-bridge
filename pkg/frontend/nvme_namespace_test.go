@@ -39,6 +39,9 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 		Nguid:            "1b4e28ba-2fa1-11d2-883f-b9a761bde3fb",
 		Eui64:            1967554867335598546,
 	}
+	t.Cleanup(server.CheckTestProtoObjectsNotChanged(spec, namespaceSpec)(t, t.Name()))
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
+
 	tests := map[string]struct {
 		id      string
 		in      *pb.NvmeNamespace
@@ -196,13 +199,14 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
 			if tt.exist {
-				testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+				testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 				testEnv.opiSpdkServer.Namespaces[testNamespaceName].Name = testNamespaceName
 			}
 			if tt.out != nil {
+				tt.out = server.ProtoClone(tt.out)
 				tt.out.Name = testNamespaceName
 			}
 
@@ -228,6 +232,7 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
@@ -316,9 +321,9 @@ func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
+			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 
 			request := &pb.DeleteNvmeNamespaceRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteNvmeNamespace(testEnv.ctx, request)
@@ -342,6 +347,7 @@ func TestFrontEnd_DeleteNvmeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		mask    *fieldmaskpb.FieldMask
 		in      *pb.NvmeNamespace
@@ -402,9 +408,9 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
+			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 
 			request := &pb.UpdateNvmeNamespaceRequest{NvmeNamespace: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateNvmeNamespace(testEnv.ctx, request)
@@ -428,6 +434,7 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     []*pb.NvmeNamespace
@@ -606,9 +613,9 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
+			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
 			request := &pb.ListNvmeNamespacesRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
@@ -638,6 +645,7 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 }
 
 func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *pb.NvmeNamespace
@@ -724,9 +732,9 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
+			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 
 			request := &pb.GetNvmeNamespaceRequest{Name: tt.in}
 			response, err := testEnv.client.GetNvmeNamespace(testEnv.ctx, request)
@@ -750,6 +758,7 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 }
 
 func TestFrontEnd_StatsNvmeNamespace(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
@@ -824,9 +833,9 @@ func TestFrontEnd_StatsNvmeNamespace(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = &testSubsystem
-			testEnv.opiSpdkServer.Controllers[testControllerName] = &testController
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = &testNamespace
+			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = server.ProtoClone(&testSubsystem)
+			testEnv.opiSpdkServer.Controllers[testControllerName] = server.ProtoClone(&testController)
+			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = server.ProtoClone(&testNamespace)
 
 			request := &pb.StatsNvmeNamespaceRequest{Name: tt.in}
 			response, err := testEnv.client.StatsNvmeNamespace(testEnv.ctx, request)

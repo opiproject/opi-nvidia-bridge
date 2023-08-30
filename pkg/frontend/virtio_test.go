@@ -23,6 +23,7 @@ import (
 )
 
 func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      *pb.VirtioBlk
 		out     *pb.VirtioBlk
@@ -67,6 +68,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 			defer testEnv.Close()
 
 			if tt.out != nil {
+				tt.out = server.ProtoClone(tt.out)
 				tt.out.Name = testVirtioCtrlName
 			}
 
@@ -92,6 +94,7 @@ func TestFrontEnd_CreateVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		mask    *fieldmaskpb.FieldMask
 		in      *pb.VirtioBlk
@@ -153,7 +156,8 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName] = server.ProtoClone(&testVirtioCtrl)
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName].Name = testVirtioCtrlName
 
 			request := &pb.UpdateVirtioBlkRequest{VirtioBlk: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateVirtioBlk(testEnv.ctx, request)
@@ -177,6 +181,7 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_ListVirtioBlks(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     []*pb.VirtioBlk
@@ -398,6 +403,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 }
 
 func TestFrontEnd_GetVirtioBlk(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *pb.VirtioBlk
@@ -470,7 +476,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName] = server.ProtoClone(&testVirtioCtrl)
 
 			request := &pb.GetVirtioBlkRequest{Name: tt.in}
 			response, err := testEnv.client.GetVirtioBlk(testEnv.ctx, request)
@@ -494,6 +500,7 @@ func TestFrontEnd_GetVirtioBlk(t *testing.T) {
 }
 
 func TestFrontEnd_VirtioBlkStats(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *pb.VolumeStats
@@ -561,7 +568,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = server.ProtoClone(&testVirtioCtrl)
 
 			request := &pb.StatsVirtioBlkRequest{Name: tt.in}
 			response, err := testEnv.client.StatsVirtioBlk(testEnv.ctx, request)
@@ -585,6 +592,7 @@ func TestFrontEnd_VirtioBlkStats(t *testing.T) {
 }
 
 func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
+	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
 	tests := map[string]struct {
 		in      string
 		out     *emptypb.Empty
@@ -665,7 +673,7 @@ func TestFrontEnd_DeleteVirtioBlk(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrl.Name] = &testVirtioCtrl
+			testEnv.opiSpdkServer.VirtioCtrls[testVirtioCtrlName] = server.ProtoClone(&testVirtioCtrl)
 
 			request := &pb.DeleteVirtioBlkRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteVirtioBlk(testEnv.ctx, request)

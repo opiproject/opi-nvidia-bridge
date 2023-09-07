@@ -24,6 +24,7 @@ See [CONTRIBUTING](https://github.com/opiproject/opi/blob/main/CONTRIBUTING.md) 
 
 ## Documentation
 
+* SNAP <https://docs.nvidia.com/networking/display/bluefield3snaplatest/SNAP+RPC+Commands>
 * Doca <https://docs.nvidia.com/doca/sdk/emulated-devices/index.html>
 * and <https://docs.nvidia.com/networking/display/BlueFieldDPUOSLatest/BlueField+SNAP+on+DPU>
 

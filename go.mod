@@ -6,7 +6,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/opiproject/gospdk v0.0.0-20230812114418-14a6e1aa7495
 	github.com/opiproject/opi-api v0.0.0-20230908135156-02d38276b0f2
-	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230902032658-07014b357118
+	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230909044635-a6c01d4a8b19
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230902101247-32ba17b8adc5
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	go.einride.tech/aip v0.62.0

@@ -7,7 +7,7 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/onsi/ginkgo/v2 v2.12.0
 	github.com/opiproject/gospdk v0.0.0-20230812114418-14a6e1aa7495
-	github.com/opiproject/opi-api v0.0.0-20230908135156-02d38276b0f2
+	github.com/opiproject/opi-api v0.0.0-20230911203412-3b18c0431f46
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20230910233509-b3fbab9fd9f5
 	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230910232010-e7164569acc3
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
@@ -90,6 +90,7 @@ require (
 	github.com/gostaticanalysis/comment v1.4.2 // indirect
 	github.com/gostaticanalysis/forcetypeassert v0.1.0 // indirect
 	github.com/gostaticanalysis/nilerr v0.1.1 // indirect
+	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0 // indirect
 	github.com/hashicorp/errwrap v1.0.0 // indirect
 	github.com/hashicorp/go-multierror v1.1.1 // indirect
 	github.com/hashicorp/go-version v1.6.0 // indirect
@@ -190,13 +191,13 @@ require (
 	golang.org/x/exp v0.0.0-20230510235704-dd950f8aeaea // indirect
 	golang.org/x/exp/typeparams v0.0.0-20230307190834-24139beb5833 // indirect
 	golang.org/x/mod v0.12.0 // indirect
-	golang.org/x/net v0.14.0 // indirect
+	golang.org/x/net v0.15.0 // indirect
 	golang.org/x/sync v0.3.0 // indirect
-	golang.org/x/sys v0.11.0 // indirect
-	golang.org/x/text v0.12.0 // indirect
-	google.golang.org/genproto v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20230807174057-1744710a1577 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20230807174057-1744710a1577 // indirect
+	golang.org/x/sys v0.12.0 // indirect
+	golang.org/x/text v0.13.0 // indirect
+	google.golang.org/genproto v0.0.0-20230911183012-2d3300fd4832 // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20230911183012-2d3300fd4832 // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20230911183012-2d3300fd4832 // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

@@ -66,8 +66,9 @@ on DPU/IPU (i.e. with IP=10.10.10.1) run
 
 ```bash
 $ docker run --rm -it -v /var/tmp/:/var/tmp/ -p 50051:50051 ghcr.io/opiproject/opi-nvidia-bridge:main
-2022/11/29 00:03:55 plugin serevr is &{{}}
-2022/11/29 00:03:55 server listening at [::]:50051
+2023/09/12 20:29:05 Connection to SPDK will be via: unix detected from /var/tmp/spdk.sock
+2023/09/12 20:29:05 gRPC server listening at [::]:50051
+2023/09/12 20:29:05 HTTP Server listening at 8082
 ```
 
 on X86 management VM run
@@ -94,6 +95,12 @@ full test suite
 docker run --rm -it --network=host docker.io/opiproject/godpu:main inventory get --addr="10.10.10.10:50051"
 docker run --rm -it --network=host docker.io/opiproject/godpu:main storage test --addr="10.10.10.10:50051"
 docker run --rm -it --network=host docker.io/opiproject/godpu:main ipsec test --addr=10.10.10.10:50151 --pingaddr=8.8.8.1"
+```
+
+In addition HTTP is supported via grpc gateway, for example:
+
+```bash
+curl -kL http://10.10.10.10:8082/v1/inventory/1/inventory/2
 ```
 
 or manually

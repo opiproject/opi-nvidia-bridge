@@ -22,6 +22,7 @@ import (
 	"github.com/opiproject/opi-spdk-bridge/pkg/backend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/middleend"
+	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 	"github.com/opiproject/opi-strongswan-bridge/pkg/ipsec"
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
@@ -44,24 +45,45 @@ func main() {
 
 	var spdkAddress string
 	flag.StringVar(&spdkAddress, "spdk_addr", "/var/tmp/spdk.sock", "Points to SPDK unix socket/tcp socket to interact with")
+
+	var tlsFiles string
+	flag.StringVar(&tlsFiles, "tls", "", "TLS files in server_cert:server_key:ca_cert format.")
+
 	flag.Parse()
 
 	go runGatewayServer(grpcPort, httpPort)
-	runGrpcServer(grpcPort, spdkAddress)
+	runGrpcServer(grpcPort, spdkAddress, tlsFiles)
 }
 
-func runGrpcServer(grpcPort int, spdkAddress string) {
+func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
-	s := grpc.NewServer()
 	jsonRPC := spdk.NewSpdkJSONRPC(spdkAddress)
 	frontendOpiNvidiaServer := fe.NewServer(jsonRPC)
 	frontendOpiSpdkServer := frontend.NewServer(jsonRPC)
 	backendOpiSpdkServer := backend.NewServer(jsonRPC)
 	middleendOpiSpdkServer := middleend.NewServer(jsonRPC)
+
+	var serverOptions []grpc.ServerOption
+	if tlsFiles == "" {
+		log.Println("TLS files are not specified. Use insecure connection.")
+	} else {
+		log.Println("Use TLS certificate files:", tlsFiles)
+		config, err := server.ParseTLSFiles(tlsFiles)
+		if err != nil {
+			log.Fatal("Failed to parse string with tls paths:", err)
+		}
+		log.Println("TLS config:", config)
+		var option grpc.ServerOption
+		if option, err = server.SetupTLSCredentials(config); err != nil {
+			log.Fatal("Failed to setup TLS:", err)
+		}
+		serverOptions = append(serverOptions, option)
+	}
+	s := grpc.NewServer(serverOptions...)
 
 	pb.RegisterFrontendNvmeServiceServer(s, frontendOpiNvidiaServer)
 	pb.RegisterFrontendVirtioBlkServiceServer(s, frontendOpiNvidiaServer)

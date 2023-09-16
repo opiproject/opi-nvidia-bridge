@@ -19,7 +19,7 @@ services:
       test: grpcurl -plaintext localhost:50051 list || exit 1
 
   opi-gw-test:
-    image: curlimages/curl:8.2.1
+    image: curlimages/curl:8.3.0
     networks:
       - opi
     depends_on:

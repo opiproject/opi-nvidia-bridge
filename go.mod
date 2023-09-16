@@ -14,7 +14,7 @@ require (
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	github.com/vektra/mockery v1.1.2
 	go.einride.tech/aip v0.62.0
-	golang.org/x/tools v0.12.0
+	golang.org/x/tools v0.13.0
 	google.golang.org/grpc v1.58.1
 	google.golang.org/protobuf v1.31.0
 )

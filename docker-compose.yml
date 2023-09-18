@@ -14,9 +14,19 @@ services:
       - "50051:50051"
     networks:
       - opi
+    depends_on:
+      redis:
+        condition: service_healthy
     command: /opi-nvidia-bridge -grpc_port=50051 -http_port=8082 -spdk_addr /var/tmp/spdk.sock
     healthcheck:
       test: grpcurl -plaintext localhost:50051 list || exit 1
+
+  redis:
+    image: redis:7.2.1-alpine3.18
+    networks:
+      - opi
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
 
   opi-gw-test:
     image: curlimages/curl:8.3.0

@@ -106,17 +106,50 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 		"invalid fieldmask": {
 			mask: &fieldmaskpb.FieldMask{Paths: []string{"*", "author"}},
 			in: &pb.VirtioBlk{
-				Name: testVirtioCtrlName,
+				Name:          testVirtioCtrlName,
+				PcieId:        testVirtioCtrl.PcieId,
+				VolumeNameRef: testVirtioCtrl.VolumeNameRef,
 			},
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.Unknown,
 			errMsg:  fmt.Sprintf("invalid field path: %s", "'*' must not be used with other paths"),
 		},
-		"unimplemented method": {
+		"no required field": {
+			mask:    nil,
+			in:      nil,
+			out:     nil,
+			spdk:    []string{},
+			errCode: codes.Unknown,
+			errMsg:  "missing required field: virtio_blk",
+		},
+		"no required pcie field": {
 			mask: nil,
 			in: &pb.VirtioBlk{
 				Name: testVirtioCtrlName,
+			},
+			out:     nil,
+			spdk:    []string{},
+			errCode: codes.Unknown,
+			errMsg:  "missing required field: virtio_blk.pcie_id",
+		},
+		"no required volume field": {
+			mask: nil,
+			in: &pb.VirtioBlk{
+				Name:   testVirtioCtrlName,
+				PcieId: testVirtioCtrl.PcieId,
+			},
+			out:     nil,
+			spdk:    []string{},
+			errCode: codes.Unknown,
+			errMsg:  "missing required field: virtio_blk.volume_name_ref",
+		},
+		"unimplemented method": {
+			mask: nil,
+			in: &pb.VirtioBlk{
+				Name:          testVirtioCtrlName,
+				PcieId:        testVirtioCtrl.PcieId,
+				VolumeNameRef: testVirtioCtrl.VolumeNameRef,
 			},
 			out:     nil,
 			spdk:    []string{},
@@ -141,8 +174,12 @@ func TestFrontEnd_UpdateVirtioBlk(t *testing.T) {
 			errMsg:  fmt.Sprintf("unable to find key %v", server.ResourceIDToVolumeName("unknown-id")),
 		},
 		"malformed name": {
-			mask:    nil,
-			in:      &pb.VirtioBlk{Name: "-ABC-DEF"},
+			mask: nil,
+			in: &pb.VirtioBlk{
+				Name:          "-ABC-DEF",
+				PcieId:        testVirtioCtrl.PcieId,
+				VolumeNameRef: testVirtioCtrl.VolumeNameRef,
+			},
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.Unknown,

@@ -5,9 +5,14 @@
 package frontend
 
 import (
+	"fmt"
+
 	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/resourceid"
 	"go.einride.tech/aip/resourcename"
+
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 )
@@ -23,7 +28,22 @@ func (s *Server) validateCreateNvmeSubsystemRequest(in *pb.CreateNvmeSubsystemRe
 			return err
 		}
 	}
-	// TODO: check in.NvmeSubsystem.Spec.Vni validity
+	// check Nqn length
+	if len(in.NvmeSubsystem.Spec.Nqn) > 223 {
+		msg := fmt.Sprintf("Nqn value (%s) is too long, have to be between 1 and 223", in.NvmeSubsystem.Spec.Nqn)
+		return status.Errorf(codes.InvalidArgument, msg)
+	}
+	// check SerialNumber length
+	if len(in.NvmeSubsystem.Spec.SerialNumber) > 20 {
+		msg := fmt.Sprintf("SerialNumber value (%s) is too long, have to be between 1 and 20", in.NvmeSubsystem.Spec.SerialNumber)
+		return status.Errorf(codes.InvalidArgument, msg)
+	}
+	// check ModelNumber length
+	if len(in.NvmeSubsystem.Spec.ModelNumber) > 40 {
+		msg := fmt.Sprintf("ModelNumber value (%s) is too long, have to be between 1 and 40", in.NvmeSubsystem.Spec.ModelNumber)
+		return status.Errorf(codes.InvalidArgument, msg)
+	}
+	// TODO: check in.NvmeSubsystem.Spec.Nqn validity with regexp
 	return nil
 }
 

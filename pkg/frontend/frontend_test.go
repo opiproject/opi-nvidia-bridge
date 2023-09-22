@@ -19,6 +19,7 @@ import (
 
 	"github.com/opiproject/gospdk/spdk"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
+	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 )
 
@@ -89,17 +90,16 @@ func dialer(opiSpdkServer *Server) func(context.Context, string) (net.Conn, erro
 
 var (
 	testSubsystemID   = "subsystem-test"
-	testSubsystemName = server.ResourceIDToVolumeName(testSubsystemID)
+	testSubsystemName = frontend.ResourceIDToSubsystemName(testSubsystemID)
 	testSubsystem     = pb.NvmeSubsystem{
 		Spec: &pb.NvmeSubsystemSpec{
 			Nqn: "nqn.2022-09.io.spdk:opi3",
 		},
 	}
 	testControllerID   = "controller-test"
-	testControllerName = server.ResourceIDToVolumeName(testControllerID)
+	testControllerName = frontend.ResourceIDToControllerName(testSubsystemID, testControllerID)
 	testController     = pb.NvmeController{
 		Spec: &pb.NvmeControllerSpec{
-			SubsystemNameRef: testSubsystemName,
 			PcieId: &pb.PciEndpoint{
 				PhysicalFunction: wrapperspb.Int32(1),
 				VirtualFunction:  wrapperspb.Int32(2),
@@ -112,12 +112,11 @@ var (
 		},
 	}
 	testNamespaceID   = "namespace-test"
-	testNamespaceName = server.ResourceIDToVolumeName(testNamespaceID)
+	testNamespaceName = frontend.ResourceIDToNamespaceName(testSubsystemID, testNamespaceID)
 	testNamespace     = pb.NvmeNamespace{
 		Spec: &pb.NvmeNamespaceSpec{
-			HostNsid:         22,
-			SubsystemNameRef: testSubsystemName,
-			VolumeNameRef:    "Malloc1",
+			HostNsid:      22,
+			VolumeNameRef: "Malloc1",
 		},
 		Status: &pb.NvmeNamespaceStatus{
 			PciState:     2,

@@ -9,9 +9,6 @@ import (
 	"go.einride.tech/aip/resourceid"
 	"go.einride.tech/aip/resourcename"
 
-	"google.golang.org/grpc/codes"
-	"google.golang.org/grpc/status"
-
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 )
 
@@ -26,12 +23,8 @@ func (s *Server) validateCreateNvmeControllerRequest(in *pb.CreateNvmeController
 			return err
 		}
 	}
-	// check input parameters validity
-	if in.NvmeController.Spec == nil || in.NvmeController.Spec.SubsystemNameRef == "" {
-		return status.Error(codes.InvalidArgument, "invalid input subsystem parameters")
-	}
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
-	return resourcename.Validate(in.NvmeController.Spec.SubsystemNameRef)
+	return resourcename.Validate(in.Parent)
 }
 
 func (s *Server) validateDeleteNvmeControllerRequest(in *pb.DeleteNvmeControllerRequest) error {

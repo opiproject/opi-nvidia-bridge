@@ -16,6 +16,7 @@ import (
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
+	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/server"
 
 	"github.com/google/uuid"
@@ -47,7 +48,9 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeNamespaceId, in.NvmeNamespace.Name)
 		resourceID = in.NvmeNamespaceId
 	}
-	in.NvmeNamespace.Name = server.ResourceIDToVolumeName(resourceID)
+	in.NvmeNamespace.Name = frontend.ResourceIDToNamespaceName(
+		frontend.GetSubsystemIDFromNvmeName(in.Parent), resourceID,
+	)
 	// idempotent API when called with same key, should return same object
 	namespace, ok := s.Namespaces[in.NvmeNamespace.Name]
 	if ok {
@@ -55,9 +58,9 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		return namespace, nil
 	}
 	// not found, so create a new one
-	subsys, ok := s.Subsystems[in.NvmeNamespace.Spec.SubsystemNameRef]
+	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Spec.SubsystemNameRef)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -108,9 +111,12 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	subsys, ok := s.Subsystems[namespace.Spec.SubsystemNameRef]
+	subsysName := frontend.ResourceIDToSubsystemName(
+		frontend.GetSubsystemIDFromNvmeName(in.Name),
+	)
+	subsys, ok := s.Subsystems[subsysName]
 	if !ok {
-		err := fmt.Errorf("unable to find subsystem %s", namespace.Spec.SubsystemNameRef)
+		err := fmt.Errorf("unable to find subsystem %s", subsysName)
 		log.Printf("error: %v", err)
 		return nil, err
 	}
@@ -129,7 +135,7 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
-		msg := fmt.Sprintf("Could not delete NS: %s", namespace.Spec.SubsystemNameRef)
+		msg := fmt.Sprintf("Could not delete NS: %s", in.Name)
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
@@ -228,9 +234,12 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 		log.Printf("error: %v", err)
 		return nil, err
 	}
-	subsys, ok := s.Subsystems[namespace.Spec.SubsystemNameRef]
+	subsysName := frontend.ResourceIDToSubsystemName(
+		frontend.GetSubsystemIDFromNvmeName(in.Name),
+	)
+	subsys, ok := s.Subsystems[subsysName]
 	if !ok {
-		err := status.Errorf(codes.NotFound, "unable to find key %s", namespace.Spec.SubsystemNameRef)
+		err := status.Errorf(codes.NotFound, "unable to find key %s", subsysName)
 		log.Printf("error: %v", err)
 		return nil, err
 	}

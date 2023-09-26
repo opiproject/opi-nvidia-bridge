@@ -14,7 +14,7 @@ import (
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
-	"github.com/opiproject/opi-spdk-bridge/pkg/server"
+	"github.com/opiproject/opi-spdk-bridge/pkg/utils"
 
 	"github.com/google/uuid"
 	"go.einride.tech/aip/fieldbehavior"
@@ -46,7 +46,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.VirtioBlkId, in.VirtioBlk.Name)
 		resourceID = in.VirtioBlkId
 	}
-	in.VirtioBlk.Name = server.ResourceIDToVolumeName(resourceID)
+	in.VirtioBlk.Name = utils.ResourceIDToVolumeName(resourceID)
 	// idempotent API when called with same key, should return same object
 	controller, ok := s.VirtioCtrls[in.VirtioBlk.Name]
 	if ok {
@@ -75,7 +75,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	response := server.ProtoClone(in.VirtioBlk)
+	response := utils.ProtoClone(in.VirtioBlk)
 	// response.Status = &pb.NvmeControllerStatus{Active: true}
 	s.VirtioCtrls[in.VirtioBlk.Name] = response
 	return response, nil
@@ -152,7 +152,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		return nil, err
 	}
 
-	size, offset, perr := server.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
+	size, offset, perr := utils.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
 	if perr != nil {
 		log.Printf("error: %v", perr)
 		return nil, perr
@@ -166,7 +166,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 	log.Printf("Received from SPDK: %v", result)
 	token, hasMoreElements := "", false
 	log.Printf("Limiting result len(%d) to [%d:%d]", len(result), offset, size)
-	result, hasMoreElements = server.LimitPagination(result, offset, size)
+	result, hasMoreElements = utils.LimitPagination(result, offset, size)
 	if hasMoreElements {
 		token = uuid.New().String()
 		s.Pagination[token] = offset + size
@@ -176,7 +176,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		r := &result[i]
 		if r.Type == "virtio_blk" {
 			ctrl := &pb.VirtioBlk{
-				Name: server.ResourceIDToVolumeName(r.Name),
+				Name: utils.ResourceIDToVolumeName(r.Name),
 				PcieId: &pb.PciEndpoint{
 					PhysicalFunction: wrapperspb.Int32(int32(r.PciIndex)),
 					VirtualFunction:  wrapperspb.Int32(0),
@@ -217,7 +217,7 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		r := &result[i]
 		if r.Name == resourceID && r.Type == "virtio_blk" {
 			return &pb.VirtioBlk{
-				Name: server.ResourceIDToVolumeName(r.Name),
+				Name: utils.ResourceIDToVolumeName(r.Name),
 				PcieId: &pb.PciEndpoint{
 					PhysicalFunction: wrapperspb.Int32(int32(r.PciIndex)),
 					VirtualFunction:  wrapperspb.Int32(0),

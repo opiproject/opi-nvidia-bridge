@@ -449,6 +449,8 @@ github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230924130629-b3c17968b054 h1:aF
 github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230924130629-b3c17968b054/go.mod h1:7CvulWmvsdwEsOSZJlSR9M/RWQ14WAIYjItFMEvevQw=
 github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230924154020-88fe0ef01402 h1:+T55+Jrsnr/nTRziqPWgpDDzBBT+wKIeIfCJyhpxv3E=
 github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230924154020-88fe0ef01402/go.mod h1:xhcQBZJYAtYIV5/7tac3xpiPlF55fmOasi6LwsZL1J4=
+github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230926113920-4f881a4be44a h1:cHMlf3p1sZhYfLPLOT4G9ZwptQg5f+GZnSnC58pDg0w=
+github.com/opiproject/opi-spdk-bridge v0.1.2-0.20230926113920-4f881a4be44a/go.mod h1:BvAKawBYOGpU+SHR1apoytsFS42I+co6X92+DWzJE3M=
 github.com/opiproject/opi-strongswan-bridge v0.1.1 h1:Mz/8AtA0DD8O/H9jCsDw7wuVoWNiqgXICLsD10XWJ+g=
 github.com/opiproject/opi-strongswan-bridge v0.1.1/go.mod h1:ek3r3zLa9nOfb2a7ybdMJvb5BSGU9I17Xo38UMXfE+k=
 github.com/otiai10/copy v1.2.0 h1:HvG945u96iNadPoG2/Ja2+AUJeW5YuFQMixq9yirC+k=
@@ -986,10 +988,14 @@ google.golang.org/genproto v0.0.0-20210108203827-ffc7fda8c3d7/go.mod h1:FWY/as6D
 google.golang.org/genproto v0.0.0-20210226172003-ab064af71705/go.mod h1:FWY/as6DDZQgahTzZj3fqbO1CbirC29ZNUFHwi0/+no=
 google.golang.org/genproto v0.0.0-20230911183012-2d3300fd4832 h1:/30npZKtUjXqju7ZA2MsvpkGKD4mQFtf+zPnZasABjg=
 google.golang.org/genproto v0.0.0-20230911183012-2d3300fd4832/go.mod h1:yZTlhN0tQnXo3h00fuXNCxJdLdIdnVFVBaRJ5LWBbw4=
+google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb h1:XFBgcDwm7irdHTbz4Zk2h7Mh+eis4nfJEFQFYzJzuIA=
+google.golang.org/genproto v0.0.0-20230913181813-007df8e322eb/go.mod h1:yZTlhN0tQnXo3h00fuXNCxJdLdIdnVFVBaRJ5LWBbw4=
 google.golang.org/genproto/googleapis/api v0.0.0-20230911183012-2d3300fd4832 h1:4E7rZzBdR5LmiZx6n47Dg4AjH8JLhMQWywsYqvXNLcs=
 google.golang.org/genproto/googleapis/api v0.0.0-20230911183012-2d3300fd4832/go.mod h1:KjSP20unUpOx5kyQUFa7k4OJg0qeJ7DEZflGDu2p6Bk=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230913181813-007df8e322eb h1:Isk1sSH7bovx8Rti2wZK0UZF6oraBDK74uoyLEEVFN0=
 google.golang.org/genproto/googleapis/rpc v0.0.0-20230913181813-007df8e322eb/go.mod h1:+Bk1OCOj40wS2hwAMA+aCW9ypzm63QTBBHp6lQ3p+9M=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13 h1:N3bU/SQDCDyD6R528GJ/PwW9KjYcJA3dgyH+MovAkIM=
+google.golang.org/genproto/googleapis/rpc v0.0.0-20230920204549-e6e6cdab5c13/go.mod h1:KSqppvjFjtoCI+KGd4PELB0qLNxdJHRGqRI09mB6pQA=
 google.golang.org/grpc v1.19.0/go.mod h1:mqu4LbDTu4XGKhr4mRzUsmM4RtVoemTSY81AxZiDr8c=
 google.golang.org/grpc v1.20.1/go.mod h1:10oTOabMzJvdu6/UiuZezV6QK5dSlG84ov/aaiqXj38=
 google.golang.org/grpc v1.21.1/go.mod h1:oYelfM1adQP15Ek0mdvEgi9Df8B9CZIaU1084ijfRaM=

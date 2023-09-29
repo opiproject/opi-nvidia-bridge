@@ -34,10 +34,8 @@ func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 
 // CreateVirtioBlk creates a Virtio block device
 func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
-	log.Printf("CreateVirtioBlk: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateCreateVirtioBlkRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// see https://google.aip.dev/133#user-specified-ids
@@ -66,13 +64,11 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 	var result models.NvdaControllerVirtioBlkCreateResult
 	err := s.rpc.Call("controller_virtio_blk_create", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if result == "" {
 		msg := fmt.Sprintf("Could not create virtio-blk: %s", resourceID)
-		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	response := utils.ProtoClone(in.VirtioBlk)
@@ -83,10 +79,8 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 
 // DeleteVirtioBlk deletes a Virtio block device
 func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkRequest) (*emptypb.Empty, error) {
-	log.Printf("DeleteVirtioBlk: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateDeleteVirtioBlkRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
@@ -104,7 +98,6 @@ func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkReques
 	var result models.NvdaControllerVirtioBlkDeleteResult
 	err := s.rpc.Call("controller_virtio_blk_delete", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -117,10 +110,8 @@ func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkReques
 
 // UpdateVirtioBlk updates a Virtio block device
 func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkRequest) (*pb.VirtioBlk, error) {
-	log.Printf("UpdateVirtioBlk: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateUpdateVirtioBlkRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
@@ -130,13 +121,11 @@ func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkReques
 			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
 		}
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.VirtioBlk.Name)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	resourceID := path.Base(volume.Name)
 	// update_mask = 2
 	if err := fieldmask.Validate(in.UpdateMask, in.VirtioBlk); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("TODO: use resourceID=%v", resourceID)
@@ -145,22 +134,17 @@ func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkReques
 
 // ListVirtioBlks lists Virtio block devices
 func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
-	log.Printf("ListVirtioBlks: Received from client: %v", in)
-
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 
 	size, offset, perr := utils.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
 	if perr != nil {
-		log.Printf("error: %v", perr)
 		return nil, perr
 	}
 	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -192,23 +176,19 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 
 // GetVirtioBlk gets a Virtio block device
 func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
-	log.Printf("GetVirtioBlk: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateGetVirtioBlkRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
 	_, ok := s.VirtioCtrls[in.Name]
 	if !ok {
 		msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
-		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	var result []models.NvdaControllerListResult
 	err := s.rpc.Call("controller_list", nil, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -227,23 +207,19 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		}
 	}
 	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
-	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
 // StatsVirtioBlk gets a Virtio block device stats
 func (s *Server) StatsVirtioBlk(_ context.Context, in *pb.StatsVirtioBlkRequest) (*pb.StatsVirtioBlkResponse, error) {
-	log.Printf("VirtioBlkStats: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateStatsVirtioBlkRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
 	var result models.NvdaControllerNvmeStatsResult
 	err := s.rpc.Call("controller_virtio_blk_get_iostat", nil, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -258,6 +234,5 @@ func (s *Server) StatsVirtioBlk(_ context.Context, in *pb.StatsVirtioBlkRequest)
 		}
 	}
 	msg := fmt.Sprintf("Could not find Controller: %s", in.Name)
-	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

@@ -36,10 +36,8 @@ func sortNvmeNamespaces(namespaces []*pb.NvmeNamespace) {
 
 // CreateNvmeNamespace creates an Nvme namespace
 func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
-	log.Printf("CreateNvmeNamespace: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateCreateNvmeNamespaceRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// see https://google.aip.dev/133#user-specified-ids
@@ -61,7 +59,6 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// TODO: do lookup through VolumeId key instead of using it's value
@@ -78,13 +75,11 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 	var result models.NvdaControllerNvmeNamespaceAttachResult
 	err := s.rpc.Call("controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
 		msg := fmt.Sprintf("Could not create NS: %s", in.NvmeNamespace.Name)
-		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	response := utils.ProtoClone(in.NvmeNamespace)
@@ -95,10 +90,8 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 
 // DeleteNvmeNamespace deletes an Nvme namespace
 func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespaceRequest) (*emptypb.Empty, error) {
-	log.Printf("DeleteNvmeNamespace: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateDeleteNvmeNamespaceRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
@@ -108,7 +101,6 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 			return &emptypb.Empty{}, nil
 		}
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	subsysName := frontend.ResourceIDToSubsystemName(
@@ -117,7 +109,6 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 	subsys, ok := s.Subsystems[subsysName]
 	if !ok {
 		err := fmt.Errorf("unable to find subsystem %s", subsysName)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 
@@ -130,13 +121,11 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 	var result models.NvdaControllerNvmeNamespaceDetachResult
 	err := s.rpc.Call("controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
 	if !result {
 		msg := fmt.Sprintf("Could not delete NS: %s", in.Name)
-		log.Print(msg)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	delete(s.Namespaces, namespace.Name)
@@ -145,10 +134,8 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 
 // UpdateNvmeNamespace updates an Nvme namespace
 func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
-	log.Printf("UpdateNvmeNamespace: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateUpdateNvmeNamespaceRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
@@ -158,13 +145,11 @@ func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespa
 			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
 		}
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Name)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	resourceID := path.Base(volume.Name)
 	// update_mask = 2
 	if err := fieldmask.Validate(in.UpdateMask, in.NvmeNamespace); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("TODO: use resourceID=%v", resourceID)
@@ -173,22 +158,18 @@ func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespa
 
 // ListNvmeNamespaces lists Nvme namespaces
 func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespacesRequest) (*pb.ListNvmeNamespacesResponse, error) {
-	log.Printf("ListNvmeNamespaces: Received from client: %v", in)
 	// check required fields
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
 	size, offset, perr := utils.ExtractPagination(in.PageSize, in.PageToken, s.Pagination)
 	if perr != nil {
-		log.Printf("error: %v", perr)
 		return nil, perr
 	}
 	subsys, ok := s.Subsystems[in.Parent]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// TODO: fix hard-coded Cntlid
@@ -199,7 +180,6 @@ func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespaces
 	var result models.NvdaControllerNvmeNamespaceListResult
 	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -221,17 +201,14 @@ func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespaces
 
 // GetNvmeNamespace gets an Nvme namespace
 func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
-	log.Printf("GetNvmeNamespace: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateGetNvmeNamespaceRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
 	namespace, ok := s.Namespaces[in.Name]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	subsysName := frontend.ResourceIDToSubsystemName(
@@ -240,7 +217,6 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 	subsys, ok := s.Subsystems[subsysName]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", subsysName)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// TODO: fix hard-coded Cntlid
@@ -251,7 +227,6 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 	var result models.NvdaControllerNvmeNamespaceListResult
 	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -262,29 +237,24 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 		}
 	}
 	msg := fmt.Sprintf("Could not find HostNsid: %d", namespace.Spec.HostNsid)
-	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }
 
 // StatsNvmeNamespace gets an Nvme namespace stats
 func (s *Server) StatsNvmeNamespace(_ context.Context, in *pb.StatsNvmeNamespaceRequest) (*pb.StatsNvmeNamespaceResponse, error) {
-	log.Printf("StatsNvmeNamespace: Received from client: %v", in)
 	// check input correctness
 	if err := s.validateStatsNvmeNamespaceRequest(in); err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	// fetch object from the database
 	namespace, ok := s.Namespaces[in.Name]
 	if !ok {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	var result models.NvdaControllerNvmeStatsResult
 	err := s.rpc.Call("controller_nvme_get_iostat", nil, &result)
 	if err != nil {
-		log.Printf("error: %v", err)
 		return nil, err
 	}
 	log.Printf("Received from SPDK: %v", result)
@@ -299,6 +269,5 @@ func (s *Server) StatsNvmeNamespace(_ context.Context, in *pb.StatsNvmeNamespace
 		}
 	}
 	msg := fmt.Sprintf("Could not find BdevName: %s", namespace.Spec.VolumeNameRef)
-	log.Print(msg)
 	return nil, status.Errorf(codes.InvalidArgument, msg)
 }

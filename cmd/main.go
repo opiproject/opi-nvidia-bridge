@@ -29,6 +29,9 @@ import (
 	ps "github.com/opiproject/opi-api/security/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 
+	"github.com/philippgille/gokv"
+	"github.com/philippgille/gokv/gomap"
+
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/credentials/insecure"
 	"google.golang.org/grpc/reflection"
@@ -51,21 +54,33 @@ func main() {
 
 	flag.Parse()
 
+	// Create KV store for persistence
+	options := gomap.DefaultOptions
+	options.Codec = utils.ProtoCodec{}
+	// TODO: we can change to redis or badger at any given time
+	store := gomap.NewStore(options)
+	defer func(store gokv.Store) {
+		err := store.Close()
+		if err != nil {
+			log.Panic(err)
+		}
+	}(store)
+
 	go runGatewayServer(grpcPort, httpPort)
-	runGrpcServer(grpcPort, spdkAddress, tlsFiles)
+	runGrpcServer(grpcPort, spdkAddress, tlsFiles, store)
 }
 
-func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string) {
+func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string, store gokv.Store) {
 	lis, err := net.Listen("tcp", fmt.Sprintf(":%d", grpcPort))
 	if err != nil {
 		log.Fatalf("failed to listen: %v", err)
 	}
 
 	jsonRPC := spdk.NewSpdkJSONRPC(spdkAddress)
-	frontendOpiNvidiaServer := fe.NewServer(jsonRPC)
-	frontendOpiSpdkServer := frontend.NewServer(jsonRPC)
-	backendOpiSpdkServer := backend.NewServer(jsonRPC)
-	middleendOpiSpdkServer := middleend.NewServer(jsonRPC)
+	frontendOpiNvidiaServer := fe.NewServer(jsonRPC, store)
+	frontendOpiSpdkServer := frontend.NewServer(jsonRPC, store)
+	backendOpiSpdkServer := backend.NewServer(jsonRPC, store)
+	middleendOpiSpdkServer := middleend.NewServer(jsonRPC, store)
 
 	var serverOptions []grpc.ServerOption
 	if tlsFiles == "" {

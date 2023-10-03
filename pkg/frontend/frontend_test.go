@@ -105,11 +105,14 @@ var (
 	testControllerName = frontend.ResourceIDToControllerName(testSubsystemID, testControllerID)
 	testController     = pb.NvmeController{
 		Spec: &pb.NvmeControllerSpec{
-			PcieId: &pb.PciEndpoint{
-				PhysicalFunction: wrapperspb.Int32(1),
-				VirtualFunction:  wrapperspb.Int32(2),
-				PortId:           wrapperspb.Int32(0),
+			Endpoint: &pb.NvmeControllerSpec_PcieId{
+				PcieId: &pb.PciEndpoint{
+					PhysicalFunction: wrapperspb.Int32(1),
+					VirtualFunction:  wrapperspb.Int32(2),
+					PortId:           wrapperspb.Int32(0),
+				},
 			},
+			Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 			NvmeControllerId: proto.Int32(17),
 		},
 		Status: &pb.NvmeControllerStatus{

@@ -16,7 +16,6 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/emptypb"
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
-	"google.golang.org/protobuf/types/known/wrapperspb"
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
@@ -25,19 +24,13 @@ import (
 
 func TestFrontEnd_CreateNvmeController(t *testing.T) {
 	spec := &pb.NvmeControllerSpec{
-		PcieId: &pb.PciEndpoint{
-			PhysicalFunction: wrapperspb.Int32(1),
-			VirtualFunction:  wrapperspb.Int32(2),
-			PortId:           wrapperspb.Int32(0),
-		},
+		Endpoint:         testController.Spec.Endpoint,
+		Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 		NvmeControllerId: proto.Int32(1),
 	}
 	controllerSpec := &pb.NvmeControllerSpec{
-		PcieId: &pb.PciEndpoint{
-			PhysicalFunction: wrapperspb.Int32(1),
-			VirtualFunction:  wrapperspb.Int32(2),
-			PortId:           wrapperspb.Int32(0),
-		},
+		Endpoint:         testController.Spec.Endpoint,
+		Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 		NvmeControllerId: proto.Int32(17),
 	}
 	t.Cleanup(checkGlobalTestProtoObjectsNotChanged(t, t.Name()))
@@ -57,7 +50,8 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			id: "CapitalLettersNotAllowed",
 			in: &pb.NvmeController{
 				Spec: &pb.NvmeControllerSpec{
-					PcieId:           testController.Spec.PcieId,
+					Endpoint:         testController.Spec.Endpoint,
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 					NvmeControllerId: proto.Int32(1),
 				},
 			},
@@ -124,7 +118,8 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			out: &pb.NvmeController{
 				Name: testControllerName,
 				Spec: &pb.NvmeControllerSpec{
-					PcieId:           testController.Spec.PcieId,
+					Endpoint:         testController.Spec.Endpoint,
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 					NvmeControllerId: proto.Int32(17),
 				},
 				Status: &pb.NvmeControllerStatus{
@@ -153,7 +148,8 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			id: testControllerID,
 			in: &pb.NvmeController{
 				Spec: &pb.NvmeControllerSpec{
-					PcieId:           testController.Spec.PcieId,
+					Endpoint:         testController.Spec.Endpoint,
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 					NvmeControllerId: proto.Int32(1),
 				},
 			},
@@ -179,7 +175,8 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			in: &pb.NvmeController{
 				Spec: &pb.NvmeControllerSpec{
 					NvmeControllerId: proto.Int32(1),
-					PcieId:           testController.Spec.PcieId,
+					Endpoint:         testController.Spec.Endpoint,
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
 				},
 			},
 			out:     nil,

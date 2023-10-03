@@ -65,7 +65,7 @@ func (s *Server) CreateNvmeController(_ context.Context, in *pb.CreateNvmeContro
 	params := models.NvdaControllerNvmeCreateParams{
 		Nqn:              subsys.Spec.Nqn,
 		EmulationManager: "mlx5_0",
-		PfID:             int(in.NvmeController.Spec.PcieId.PhysicalFunction.Value),
+		PfID:             int(in.GetNvmeController().GetSpec().GetPcieId().GetPhysicalFunction().GetValue()),
 		// VfID:             int(in.NvmeController.Spec.PcieId.VirtualFunction),
 		// MaxNamespaces:    int(in.NvmeController.Spec.MaxNsq),
 		// NrIoQueues:       int(in.NvmeController.Spec.MaxNcq),

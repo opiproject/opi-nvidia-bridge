@@ -186,6 +186,50 @@ func TestFrontEnd_CreateNvmeController(t *testing.T) {
 			exist:   false,
 			subsys:  "",
 		},
+		"not supported transport type": {
+			id: testControllerID,
+			in: &pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
+					Endpoint: &pb.NvmeControllerSpec_FabricsId{
+						FabricsId: &pb.FabricsEndpoint{
+							Traddr:  "127.0.0.1",
+							Trsvcid: "4420",
+							Adrfam:  pb.NvmeAddressFamily_NVME_ADRFAM_IPV4,
+						},
+					},
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_TCP,
+					NvmeControllerId: proto.Int32(1),
+				},
+			},
+			out:     nil,
+			spdk:    []string{},
+			errCode: codes.Unknown,
+			errMsg:  fmt.Sprintf("not supported transport type: %v", pb.NvmeTransportType_NVME_TRANSPORT_TCP),
+			exist:   false,
+			subsys:  testSubsystemName,
+		},
+		"not corresponding endpoint for pcie transport type": {
+			id: testControllerID,
+			in: &pb.NvmeController{
+				Spec: &pb.NvmeControllerSpec{
+					Endpoint: &pb.NvmeControllerSpec_FabricsId{
+						FabricsId: &pb.FabricsEndpoint{
+							Traddr:  "127.0.0.1",
+							Trsvcid: "4420",
+							Adrfam:  pb.NvmeAddressFamily_NVME_ADRFAM_IPV4,
+						},
+					},
+					Trtype:           pb.NvmeTransportType_NVME_TRANSPORT_PCIE,
+					NvmeControllerId: proto.Int32(1),
+				},
+			},
+			out:     nil,
+			spdk:    []string{},
+			errCode: codes.Unknown,
+			errMsg:  "invalid endpoint type passed for transport",
+			exist:   false,
+			subsys:  testSubsystemName,
+		},
 	}
 
 	// run tests

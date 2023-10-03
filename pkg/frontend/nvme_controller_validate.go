@@ -5,6 +5,9 @@
 package frontend
 
 import (
+	"errors"
+	"fmt"
+
 	"go.einride.tech/aip/fieldbehavior"
 	"go.einride.tech/aip/resourceid"
 	"go.einride.tech/aip/resourcename"
@@ -23,6 +26,15 @@ func (s *Server) validateCreateNvmeControllerRequest(in *pb.CreateNvmeController
 			return err
 		}
 	}
+
+	if in.NvmeController.Spec.Trtype != pb.NvmeTransportType_NVME_TRANSPORT_PCIE {
+		return fmt.Errorf("not supported transport type: %v", in.NvmeController.Spec.Trtype)
+	}
+
+	if in.NvmeController.Spec.GetPcieId() == nil {
+		return errors.New("invalid endpoint type passed for transport")
+	}
+
 	// Validate that a resource name conforms to the restrictions outlined in AIP-122.
 	return resourcename.Validate(in.Parent)
 }

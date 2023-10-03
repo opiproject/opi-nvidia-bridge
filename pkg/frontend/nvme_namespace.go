@@ -49,14 +49,22 @@ func (s *Server) CreateNvmeNamespace(ctx context.Context, in *pb.CreateNvmeNames
 		utils.GetSubsystemIDFromNvmeName(in.Parent), resourceID,
 	)
 	// idempotent API when called with same key, should return same object
-	namespace, ok := s.Namespaces[in.NvmeNamespace.Name]
-	if ok {
+	namespace := new(pb.NvmeNamespace)
+	found, err := s.store.Get(in.NvmeNamespace.Name, namespace)
+	if err != nil {
+		return nil, err
+	}
+	if found {
 		log.Printf("Already existing NvmeNamespace with id %v", in.NvmeNamespace.Name)
 		return namespace, nil
 	}
 	// not found, so create a new one
-	subsys, ok := s.Subsystems[in.Parent]
-	if !ok {
+	subsys := new(pb.NvmeSubsystem)
+	found, err = s.store.Get(in.Parent, subsys)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
 		return nil, err
 	}
@@ -72,7 +80,7 @@ func (s *Server) CreateNvmeNamespace(ctx context.Context, in *pb.CreateNvmeNames
 		Eui64:    strconv.FormatInt(in.NvmeNamespace.Spec.Eui64, 10),
 	}
 	var result models.NvdaControllerNvmeNamespaceAttachResult
-	err := s.rpc.Call(ctx, "controller_nvme_namespace_attach", &params, &result)
+	err = s.rpc.Call(ctx, "controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -86,7 +94,10 @@ func (s *Server) CreateNvmeNamespace(ctx context.Context, in *pb.CreateNvmeNames
 		State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
 		OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
 	}
-	s.Namespaces[in.NvmeNamespace.Name] = response
+	err = s.store.Set(in.NvmeNamespace.Name, response)
+	if err != nil {
+		return nil, err
+	}
 	return response, nil
 }
 
@@ -97,8 +108,12 @@ func (s *Server) DeleteNvmeNamespace(ctx context.Context, in *pb.DeleteNvmeNames
 		return nil, err
 	}
 	// fetch object from the database
-	namespace, ok := s.Namespaces[in.Name]
-	if !ok {
+	namespace := new(pb.NvmeNamespace)
+	found, err := s.store.Get(in.Name, namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		if in.AllowMissing {
 			return &emptypb.Empty{}, nil
 		}
@@ -108,8 +123,12 @@ func (s *Server) DeleteNvmeNamespace(ctx context.Context, in *pb.DeleteNvmeNames
 	subsysName := utils.ResourceIDToSubsystemName(
 		utils.GetSubsystemIDFromNvmeName(in.Name),
 	)
-	subsys, ok := s.Subsystems[subsysName]
-	if !ok {
+	subsys := new(pb.NvmeSubsystem)
+	found, err = s.store.Get(subsysName, subsys)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := fmt.Errorf("unable to find subsystem %s", subsysName)
 		return nil, err
 	}
@@ -121,7 +140,7 @@ func (s *Server) DeleteNvmeNamespace(ctx context.Context, in *pb.DeleteNvmeNames
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceDetachResult
-	err := s.rpc.Call(ctx, "controller_nvme_namespace_detach", &params, &result)
+	err = s.rpc.Call(ctx, "controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -130,7 +149,11 @@ func (s *Server) DeleteNvmeNamespace(ctx context.Context, in *pb.DeleteNvmeNames
 		msg := fmt.Sprintf("Could not delete NS: %s", in.Name)
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
-	delete(s.Namespaces, namespace.Name)
+	// remove from the Database
+	err = s.store.Delete(namespace.Name)
+	if err != nil {
+		return nil, err
+	}
 	return &emptypb.Empty{}, nil
 }
 
@@ -141,15 +164,19 @@ func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespa
 		return nil, err
 	}
 	// fetch object from the database
-	volume, ok := s.Namespaces[in.NvmeNamespace.Name]
-	if !ok {
+	namespace := new(pb.NvmeNamespace)
+	found, err := s.store.Get(in.NvmeNamespace.Name, namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		if in.AllowMissing {
 			log.Printf("TODO: in case of AllowMissing, create a new resource, don;t return error")
 		}
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.NvmeNamespace.Name)
 		return nil, err
 	}
-	resourceID := path.Base(volume.Name)
+	resourceID := path.Base(namespace.Name)
 	// update_mask = 2
 	if err := fieldmask.Validate(in.UpdateMask, in.NvmeNamespace); err != nil {
 		return nil, err
@@ -169,8 +196,12 @@ func (s *Server) ListNvmeNamespaces(ctx context.Context, in *pb.ListNvmeNamespac
 	if perr != nil {
 		return nil, perr
 	}
-	subsys, ok := s.Subsystems[in.Parent]
-	if !ok {
+	subsys := new(pb.NvmeSubsystem)
+	found, err := s.store.Get(in.Parent, subsys)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Parent)
 		return nil, err
 	}
@@ -180,7 +211,7 @@ func (s *Server) ListNvmeNamespaces(ctx context.Context, in *pb.ListNvmeNamespac
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
+	err = s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -208,16 +239,25 @@ func (s *Server) GetNvmeNamespace(ctx context.Context, in *pb.GetNvmeNamespaceRe
 		return nil, err
 	}
 	// fetch object from the database
-	namespace, ok := s.Namespaces[in.Name]
-	if !ok {
+	namespace := new(pb.NvmeNamespace)
+	found, err := s.store.Get(in.Name, namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
 		return nil, err
 	}
 	subsysName := utils.ResourceIDToSubsystemName(
 		utils.GetSubsystemIDFromNvmeName(in.Name),
 	)
-	subsys, ok := s.Subsystems[subsysName]
-	if !ok {
+	// fetch object from the database
+	subsys := new(pb.NvmeSubsystem)
+	found, err = s.store.Get(subsysName, subsys)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", subsysName)
 		return nil, err
 	}
@@ -227,7 +267,7 @@ func (s *Server) GetNvmeNamespace(ctx context.Context, in *pb.GetNvmeNamespaceRe
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
+	err = s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -257,13 +297,17 @@ func (s *Server) StatsNvmeNamespace(ctx context.Context, in *pb.StatsNvmeNamespa
 		return nil, err
 	}
 	// fetch object from the database
-	namespace, ok := s.Namespaces[in.Name]
-	if !ok {
+	namespace := new(pb.NvmeNamespace)
+	found, err := s.store.Get(in.Name, namespace)
+	if err != nil {
+		return nil, err
+	}
+	if !found {
 		err := status.Errorf(codes.NotFound, "unable to find key %s", in.Name)
 		return nil, err
 	}
 	var result models.NvdaControllerNvmeStatsResult
-	err := s.rpc.Call(ctx, "controller_nvme_get_iostat", nil, &result)
+	err = s.rpc.Call(ctx, "controller_nvme_get_iostat", nil, &result)
 	if err != nil {
 		return nil, err
 	}

@@ -204,10 +204,10 @@ func TestFrontEnd_CreateNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 			if tt.exist {
-				testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
+				_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
 			}
 			if tt.out != nil {
 				tt.out = utils.ProtoClone(tt.out)
@@ -326,9 +326,9 @@ func TestFrontEnd_DeleteNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 
 			request := &pb.DeleteNvmeSubsystemRequest{Name: tt.in, AllowMissing: tt.missing}
 			response, err := testEnv.client.DeleteNvmeSubsystem(testEnv.ctx, request)
@@ -415,9 +415,9 @@ func TestFrontEnd_UpdateNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 
 			request := &pb.UpdateNvmeSubsystemRequest{NvmeSubsystem: tt.in, UpdateMask: tt.mask}
 			response, err := testEnv.client.UpdateNvmeSubsystem(testEnv.ctx, request)
@@ -600,9 +600,9 @@ func TestFrontEnd_ListNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
 			request := &pb.ListNvmeSubsystemsRequest{PageSize: tt.size, PageToken: tt.token}
@@ -714,9 +714,9 @@ func TestFrontEnd_GetNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 
 			request := &pb.GetNvmeSubsystemRequest{Name: tt.in}
 			response, err := testEnv.client.GetNvmeSubsystem(testEnv.ctx, request)
@@ -770,9 +770,9 @@ func TestFrontEnd_StatsNvmeSubsystem(t *testing.T) {
 			testEnv := createTestEnvironment(tt.spdk)
 			defer testEnv.Close()
 
-			testEnv.opiSpdkServer.Subsystems[testSubsystemName] = utils.ProtoClone(&testSubsystemWithStatus)
-			testEnv.opiSpdkServer.Controllers[testControllerName] = utils.ProtoClone(&testControllerWithStatus)
-			testEnv.opiSpdkServer.Namespaces[testNamespaceName] = utils.ProtoClone(&testNamespaceWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testSubsystemName, &testSubsystemWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testControllerName, &testControllerWithStatus)
+			_ = testEnv.opiSpdkServer.store.Set(testNamespaceName, &testNamespaceWithStatus)
 
 			request := &pb.StatsNvmeSubsystemRequest{Name: tt.in}
 			response, err := testEnv.client.StatsNvmeSubsystem(testEnv.ctx, request)

@@ -18,9 +18,6 @@ import (
 // Server contains frontend related OPI services
 type Server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
-	Subsystems  map[string]*pb.NvmeSubsystem
-	Controllers map[string]*pb.NvmeController
-	Namespaces  map[string]*pb.NvmeNamespace
 	VirtioCtrls map[string]*pb.VirtioBlk
 	Pagination  map[string]int
 	store       gokv.Store
@@ -36,9 +33,6 @@ func NewServer(jsonRPC spdk.JSONRPC, store gokv.Store) *Server {
 		log.Panic("nil for Store is not allowed")
 	}
 	return &Server{
-		Subsystems:  make(map[string]*pb.NvmeSubsystem),
-		Controllers: make(map[string]*pb.NvmeController),
-		Namespaces:  make(map[string]*pb.NvmeNamespace),
 		VirtioCtrls: make(map[string]*pb.VirtioBlk),
 		Pagination:  make(map[string]int),
 		store:       store,

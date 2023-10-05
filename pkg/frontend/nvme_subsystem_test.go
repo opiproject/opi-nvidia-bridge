@@ -19,7 +19,6 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
-	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/utils"
 )
 
@@ -387,7 +386,7 @@ func TestFrontEnd_UpdateNvmeSubsystem(t *testing.T) {
 		"valid request with unknown key": {
 			mask: nil,
 			in: &pb.NvmeSubsystem{
-				Name: frontend.ResourceIDToSubsystemName("unknown-subsystem-id"),
+				Name: utils.ResourceIDToSubsystemName("unknown-subsystem-id"),
 				Spec: &pb.NvmeSubsystemSpec{
 					Nqn: "nqn.2022-09.io.spdk:opi3",
 				},
@@ -395,7 +394,7 @@ func TestFrontEnd_UpdateNvmeSubsystem(t *testing.T) {
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToSubsystemName("unknown-subsystem-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToSubsystemName("unknown-subsystem-id")),
 		},
 		"malformed name": {
 			mask: nil,
@@ -687,11 +686,11 @@ func TestFrontEnd_GetNvmeSubsystem(t *testing.T) {
 			errMsg:  "",
 		},
 		"valid request with unknown key": {
-			in:      frontend.ResourceIDToSubsystemName("unknown-subsystem-id"),
+			in:      utils.ResourceIDToSubsystemName("unknown-subsystem-id"),
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToSubsystemName("unknown-subsystem-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToSubsystemName("unknown-subsystem-id")),
 		},
 		"malformed name": {
 			in:      "-ABC-DEF",

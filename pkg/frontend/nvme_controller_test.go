@@ -18,7 +18,6 @@ import (
 	"google.golang.org/protobuf/types/known/fieldmaskpb"
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
-	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/utils"
 )
 
@@ -419,13 +418,13 @@ func TestFrontEnd_UpdateNvmeController(t *testing.T) {
 		"valid request with unknown key": {
 			mask: nil,
 			in: &pb.NvmeController{
-				Name: frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
+				Name: utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
 				Spec: testController.Spec,
 			},
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
 		},
 		"malformed name": {
 			mask: nil,
@@ -617,11 +616,11 @@ func TestFrontEnd_ListNvmeControllers(t *testing.T) {
 			token:   "",
 		},
 		"valid request with unknown key": {
-			in:      frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
+			in:      utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
 			size:    0,
 			token:   "",
 		},
@@ -725,11 +724,11 @@ func TestFrontEnd_GetNvmeController(t *testing.T) {
 			errMsg:  "",
 		},
 		"valid request with unknown key": {
-			in:      frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
+			in:      utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id"),
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToControllerName(testSubsystemID, "unknown-controller-id")),
 		},
 		"malformed name": {
 			in:      "-ABC-DEF",

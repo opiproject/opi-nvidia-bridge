@@ -17,7 +17,6 @@ import (
 
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
 	"github.com/opiproject/opi-nvidia-bridge/pkg/models"
-	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/utils"
 
 	"github.com/google/uuid"
@@ -47,7 +46,7 @@ func (s *Server) CreateNvmeSubsystem(_ context.Context, in *pb.CreateNvmeSubsyst
 		log.Printf("client provided the ID of a resource %v, ignoring the name field %v", in.NvmeSubsystemId, in.NvmeSubsystem.Name)
 		resourceID = in.NvmeSubsystemId
 	}
-	in.NvmeSubsystem.Name = frontend.ResourceIDToSubsystemName(resourceID)
+	in.NvmeSubsystem.Name = utils.ResourceIDToSubsystemName(resourceID)
 	// idempotent API when called with same key, should return same object
 	subsys, ok := s.Subsystems[in.NvmeSubsystem.Name]
 	if ok {

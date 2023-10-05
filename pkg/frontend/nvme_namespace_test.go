@@ -19,7 +19,6 @@ import (
 
 	pc "github.com/opiproject/opi-api/common/v1/gen/go"
 	pb "github.com/opiproject/opi-api/storage/v1alpha1/gen/go"
-	"github.com/opiproject/opi-spdk-bridge/pkg/frontend"
 	"github.com/opiproject/opi-spdk-bridge/pkg/utils"
 )
 
@@ -387,13 +386,13 @@ func TestFrontEnd_UpdateNvmeNamespace(t *testing.T) {
 		"valid request with unknown key": {
 			mask: nil,
 			in: &pb.NvmeNamespace{
-				Name: frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
+				Name: utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
 				Spec: testNamespace.Spec,
 			},
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
 		},
 		"malformed name": {
 			mask: nil,
@@ -594,11 +593,11 @@ func TestFrontEnd_ListNvmeNamespaces(t *testing.T) {
 			token:   "",
 		},
 		"valid request with unknown key": {
-			in:      frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
+			in:      utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
 			size:    0,
 			token:   "",
 		},
@@ -710,11 +709,11 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 			errMsg:  "",
 		},
 		"valid request with unknown key": {
-			in:      frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
+			in:      utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id"),
 			out:     nil,
 			spdk:    []string{},
 			errCode: codes.NotFound,
-			errMsg:  fmt.Sprintf("unable to find key %v", frontend.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
+			errMsg:  fmt.Sprintf("unable to find key %v", utils.ResourceIDToNamespaceName(testSubsystemID, "unknown-namespace-id")),
 		},
 		"malformed name": {
 			in:      "-ABC-DEF",

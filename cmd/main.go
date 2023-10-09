@@ -86,7 +86,7 @@ func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string, store gokv
 		log.Panicf("failed to listen: %v", err)
 	}
 
-	jsonRPC := spdk.NewSpdkJSONRPC(spdkAddress)
+	jsonRPC := spdk.NewClient(spdkAddress)
 	frontendOpiNvidiaServer := fe.NewServer(jsonRPC, store)
 	frontendOpiSpdkServer := frontend.NewServer(jsonRPC, store)
 	backendOpiSpdkServer := backend.NewServer(jsonRPC, store)

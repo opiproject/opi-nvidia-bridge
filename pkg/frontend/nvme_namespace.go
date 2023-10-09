@@ -34,7 +34,7 @@ func sortNvmeNamespaces(namespaces []*pb.NvmeNamespace) {
 }
 
 // CreateNvmeNamespace creates an Nvme namespace
-func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
+func (s *Server) CreateNvmeNamespace(ctx context.Context, in *pb.CreateNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
 	// check input correctness
 	if err := s.validateCreateNvmeNamespaceRequest(in); err != nil {
 		return nil, err
@@ -72,7 +72,7 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 		Eui64:    strconv.FormatInt(in.NvmeNamespace.Spec.Eui64, 10),
 	}
 	var result models.NvdaControllerNvmeNamespaceAttachResult
-	err := s.rpc.Call("controller_nvme_namespace_attach", &params, &result)
+	err := s.rpc.Call(ctx, "controller_nvme_namespace_attach", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -88,7 +88,7 @@ func (s *Server) CreateNvmeNamespace(_ context.Context, in *pb.CreateNvmeNamespa
 }
 
 // DeleteNvmeNamespace deletes an Nvme namespace
-func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespaceRequest) (*emptypb.Empty, error) {
+func (s *Server) DeleteNvmeNamespace(ctx context.Context, in *pb.DeleteNvmeNamespaceRequest) (*emptypb.Empty, error) {
 	// check input correctness
 	if err := s.validateDeleteNvmeNamespaceRequest(in); err != nil {
 		return nil, err
@@ -118,7 +118,7 @@ func (s *Server) DeleteNvmeNamespace(_ context.Context, in *pb.DeleteNvmeNamespa
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceDetachResult
-	err := s.rpc.Call("controller_nvme_namespace_detach", &params, &result)
+	err := s.rpc.Call(ctx, "controller_nvme_namespace_detach", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -156,7 +156,7 @@ func (s *Server) UpdateNvmeNamespace(_ context.Context, in *pb.UpdateNvmeNamespa
 }
 
 // ListNvmeNamespaces lists Nvme namespaces
-func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespacesRequest) (*pb.ListNvmeNamespacesResponse, error) {
+func (s *Server) ListNvmeNamespaces(ctx context.Context, in *pb.ListNvmeNamespacesRequest) (*pb.ListNvmeNamespacesResponse, error) {
 	// check required fields
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
 		return nil, err
@@ -177,7 +177,7 @@ func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespaces
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
+	err := s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -199,7 +199,7 @@ func (s *Server) ListNvmeNamespaces(_ context.Context, in *pb.ListNvmeNamespaces
 }
 
 // GetNvmeNamespace gets an Nvme namespace
-func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
+func (s *Server) GetNvmeNamespace(ctx context.Context, in *pb.GetNvmeNamespaceRequest) (*pb.NvmeNamespace, error) {
 	// check input correctness
 	if err := s.validateGetNvmeNamespaceRequest(in); err != nil {
 		return nil, err
@@ -224,7 +224,7 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 		Cntlid: 0,
 	}
 	var result models.NvdaControllerNvmeNamespaceListResult
-	err := s.rpc.Call("controller_nvme_namespace_list", &params, &result)
+	err := s.rpc.Call(ctx, "controller_nvme_namespace_list", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -240,7 +240,7 @@ func (s *Server) GetNvmeNamespace(_ context.Context, in *pb.GetNvmeNamespaceRequ
 }
 
 // StatsNvmeNamespace gets an Nvme namespace stats
-func (s *Server) StatsNvmeNamespace(_ context.Context, in *pb.StatsNvmeNamespaceRequest) (*pb.StatsNvmeNamespaceResponse, error) {
+func (s *Server) StatsNvmeNamespace(ctx context.Context, in *pb.StatsNvmeNamespaceRequest) (*pb.StatsNvmeNamespaceResponse, error) {
 	// check input correctness
 	if err := s.validateStatsNvmeNamespaceRequest(in); err != nil {
 		return nil, err
@@ -252,7 +252,7 @@ func (s *Server) StatsNvmeNamespace(_ context.Context, in *pb.StatsNvmeNamespace
 		return nil, err
 	}
 	var result models.NvdaControllerNvmeStatsResult
-	err := s.rpc.Call("controller_nvme_get_iostat", nil, &result)
+	err := s.rpc.Call(ctx, "controller_nvme_get_iostat", nil, &result)
 	if err != nil {
 		return nil, err
 	}

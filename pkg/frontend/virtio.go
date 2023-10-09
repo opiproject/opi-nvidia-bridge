@@ -33,7 +33,7 @@ func sortVirtioBlks(virtioBlks []*pb.VirtioBlk) {
 }
 
 // CreateVirtioBlk creates a Virtio block device
-func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
+func (s *Server) CreateVirtioBlk(ctx context.Context, in *pb.CreateVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	// check input correctness
 	if err := s.validateCreateVirtioBlkRequest(in); err != nil {
 		return nil, err
@@ -62,7 +62,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 		EmulationManager: "mlx5_0",
 	}
 	var result models.NvdaControllerVirtioBlkCreateResult
-	err := s.rpc.Call("controller_virtio_blk_create", &params, &result)
+	err := s.rpc.Call(ctx, "controller_virtio_blk_create", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -78,7 +78,7 @@ func (s *Server) CreateVirtioBlk(_ context.Context, in *pb.CreateVirtioBlkReques
 }
 
 // DeleteVirtioBlk deletes a Virtio block device
-func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkRequest) (*emptypb.Empty, error) {
+func (s *Server) DeleteVirtioBlk(ctx context.Context, in *pb.DeleteVirtioBlkRequest) (*emptypb.Empty, error) {
 	// check input correctness
 	if err := s.validateDeleteVirtioBlkRequest(in); err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func (s *Server) DeleteVirtioBlk(_ context.Context, in *pb.DeleteVirtioBlkReques
 		Force: true,
 	}
 	var result models.NvdaControllerVirtioBlkDeleteResult
-	err := s.rpc.Call("controller_virtio_blk_delete", &params, &result)
+	err := s.rpc.Call(ctx, "controller_virtio_blk_delete", &params, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func (s *Server) UpdateVirtioBlk(_ context.Context, in *pb.UpdateVirtioBlkReques
 }
 
 // ListVirtioBlks lists Virtio block devices
-func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
+func (s *Server) ListVirtioBlks(ctx context.Context, in *pb.ListVirtioBlksRequest) (*pb.ListVirtioBlksResponse, error) {
 	if err := fieldbehavior.ValidateRequiredFields(in); err != nil {
 		return nil, err
 	}
@@ -143,7 +143,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 		return nil, perr
 	}
 	var result []models.NvdaControllerListResult
-	err := s.rpc.Call("controller_list", nil, &result)
+	err := s.rpc.Call(ctx, "controller_list", nil, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -175,7 +175,7 @@ func (s *Server) ListVirtioBlks(_ context.Context, in *pb.ListVirtioBlksRequest)
 }
 
 // GetVirtioBlk gets a Virtio block device
-func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
+func (s *Server) GetVirtioBlk(ctx context.Context, in *pb.GetVirtioBlkRequest) (*pb.VirtioBlk, error) {
 	// check input correctness
 	if err := s.validateGetVirtioBlkRequest(in); err != nil {
 		return nil, err
@@ -187,7 +187,7 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	var result []models.NvdaControllerListResult
-	err := s.rpc.Call("controller_list", nil, &result)
+	err := s.rpc.Call(ctx, "controller_list", nil, &result)
 	if err != nil {
 		return nil, err
 	}
@@ -211,14 +211,14 @@ func (s *Server) GetVirtioBlk(_ context.Context, in *pb.GetVirtioBlkRequest) (*p
 }
 
 // StatsVirtioBlk gets a Virtio block device stats
-func (s *Server) StatsVirtioBlk(_ context.Context, in *pb.StatsVirtioBlkRequest) (*pb.StatsVirtioBlkResponse, error) {
+func (s *Server) StatsVirtioBlk(ctx context.Context, in *pb.StatsVirtioBlkRequest) (*pb.StatsVirtioBlkResponse, error) {
 	// check input correctness
 	if err := s.validateStatsVirtioBlkRequest(in); err != nil {
 		return nil, err
 	}
 	// fetch object from the database
 	var result models.NvdaControllerNvmeStatsResult
-	err := s.rpc.Call("controller_virtio_blk_get_iostat", nil, &result)
+	err := s.rpc.Call(ctx, "controller_virtio_blk_get_iostat", nil, &result)
 	if err != nil {
 		return nil, err
 	}

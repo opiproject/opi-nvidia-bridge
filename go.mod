@@ -8,10 +8,10 @@ require (
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
 	github.com/onsi/ginkgo/v2 v2.12.1
-	github.com/opiproject/gospdk v0.0.0-20231009130851-ff9bd6faf71a
-	github.com/opiproject/opi-api v0.0.0-20231005114927-ec55946e5197
+	github.com/opiproject/gospdk v0.0.0-20231010002529-a2e5546ab856
+	github.com/opiproject/opi-api v0.0.0-20231009064235-b166668c8a86
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231002193517-9e34badb6265
-	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231007135056-df9fa5d7b614
+	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231010125224-24f59929632e
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	github.com/philippgille/gokv v0.6.0
 	github.com/philippgille/gokv/gomap v0.6.0
@@ -215,9 +215,9 @@ require (
 	golang.org/x/sys v0.13.0 // indirect
 	golang.org/x/term v0.13.0 // indirect
 	golang.org/x/text v0.13.0 // indirect
-	google.golang.org/genproto v0.0.0-20231002182017-d307bd883b97 // indirect
-	google.golang.org/genproto/googleapis/api v0.0.0-20231002182017-d307bd883b97 // indirect
-	google.golang.org/genproto/googleapis/rpc v0.0.0-20231002182017-d307bd883b97 // indirect
+	google.golang.org/genproto v0.0.0-20231009173412-8bfb1ae86b6c // indirect
+	google.golang.org/genproto/googleapis/api v0.0.0-20231009173412-8bfb1ae86b6c // indirect
+	google.golang.org/genproto/googleapis/rpc v0.0.0-20231009173412-8bfb1ae86b6c // indirect
 	gopkg.in/ini.v1 v1.67.0 // indirect
 	gopkg.in/yaml.v2 v2.4.0 // indirect
 	gopkg.in/yaml.v3 v3.0.1 // indirect

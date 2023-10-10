@@ -125,8 +125,8 @@ func TestFrontEnd_CreateNvmeNamespace(t *testing.T) {
 					Eui64:         1967554867335598546,
 				},
 				Status: &pb.NvmeNamespaceStatus{
-					PciState:     2,
-					PciOperState: 1,
+					State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
+					OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
 				},
 			},
 			spdk:    []string{`{"id":%d,"error":{"code":0,"message":""},"result":true}`},
@@ -700,8 +700,8 @@ func TestFrontEnd_GetNvmeNamespace(t *testing.T) {
 					HostNsid: 22,
 				},
 				Status: &pb.NvmeNamespaceStatus{
-					PciState:     2,
-					PciOperState: 1,
+					State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
+					OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
 				},
 			},
 			spdk:    []string{`{"id":%d,"error":{"code":0,"message":""},"result":{"name": "NvmeEmu0pf1", "cntlid": 1, "Namespaces": [{"nsid": 11, "bdev": "Malloc0", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 22, "bdev": "Malloc1", "bdev_type": "spdk", "qn": "", "protocol": ""},{"nsid": 13, "bdev": "Malloc2", "bdev_type": "spdk", "qn": "", "protocol": ""}]}}`},

@@ -143,8 +143,8 @@ var (
 		Name: testNamespaceName,
 		Spec: testNamespace.Spec,
 		Status: &pb.NvmeNamespaceStatus{
-			PciState:     2,
-			PciOperState: 1,
+			State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
+			OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
 		},
 	}
 	testVirtioCtrlID   = "virtio-blk-42"

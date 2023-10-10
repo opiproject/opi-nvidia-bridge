@@ -82,7 +82,10 @@ func (s *Server) CreateNvmeNamespace(ctx context.Context, in *pb.CreateNvmeNames
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	response := utils.ProtoClone(in.NvmeNamespace)
-	response.Status = &pb.NvmeNamespaceStatus{PciState: 2, PciOperState: 1}
+	response.Status = &pb.NvmeNamespaceStatus{
+		State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
+		OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
+	}
 	s.Namespaces[in.NvmeNamespace.Name] = response
 	return response, nil
 }
@@ -232,7 +235,15 @@ func (s *Server) GetNvmeNamespace(ctx context.Context, in *pb.GetNvmeNamespaceRe
 	for i := range result.Namespaces {
 		r := &result.Namespaces[i]
 		if r.Nsid == int(namespace.Spec.HostNsid) {
-			return &pb.NvmeNamespace{Spec: &pb.NvmeNamespaceSpec{HostNsid: int32(r.Nsid)}, Status: &pb.NvmeNamespaceStatus{PciState: 2, PciOperState: 1}}, nil
+			return &pb.NvmeNamespace{
+				Spec: &pb.NvmeNamespaceSpec{
+					HostNsid: int32(r.Nsid),
+				},
+				Status: &pb.NvmeNamespaceStatus{
+					State:     pb.NvmeNamespaceStatus_STATE_ENABLED,
+					OperState: pb.NvmeNamespaceStatus_OPER_STATE_ONLINE,
+				},
+			}, nil
 		}
 	}
 	msg := fmt.Sprintf("Could not find HostNsid: %d", namespace.Spec.HostNsid)

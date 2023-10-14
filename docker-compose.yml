@@ -42,7 +42,7 @@ services:
       - opi
 
   opi-gw-test:
-    image: curlimages/curl:8.3.0
+    image: curlimages/curl:8.4.0
     networks:
       - opi
     depends_on:
@@ -51,7 +51,7 @@ services:
     command: curl -qkL http://opi-nvidia-server:8082/v1/inventory/1/inventory/2
 
   opi-jaeger-test:
-    image: curlimages/curl:8.3.0
+    image: curlimages/curl:8.4.0
     networks:
       - opi
     depends_on:

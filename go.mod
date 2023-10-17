@@ -7,15 +7,15 @@ require (
 	github.com/google/uuid v1.3.1
 	github.com/grpc-ecosystem/go-grpc-middleware/v2 v2.0.1
 	github.com/grpc-ecosystem/grpc-gateway/v2 v2.18.0
-	github.com/onsi/ginkgo/v2 v2.12.1
-	github.com/opiproject/gospdk v0.0.0-20231011133140-19e2c3c96f5a
-	github.com/opiproject/opi-api v0.0.0-20231010164729-3c2cd198297c
-	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231002193517-9e34badb6265
-	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231011133259-cc629572bb25
+	github.com/onsi/ginkgo/v2 v2.13.0
+	github.com/opiproject/gospdk v0.0.0-20231014170006-3290904650f7
+	github.com/opiproject/opi-api v0.0.0-20231012135448-00e9f8d63cb4
+	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231014170027-e57f2147e10f
+	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231015050001-e70e732c141f
 	github.com/opiproject/opi-strongswan-bridge v0.1.1
 	github.com/philippgille/gokv v0.6.0
 	github.com/philippgille/gokv/gomap v0.6.0
-	github.com/vektra/mockery/v2 v2.35.2
+	github.com/vektra/mockery/v2 v2.35.4
 	go.einride.tech/aip v0.62.0
 	go.opentelemetry.io/contrib/instrumentation/google.golang.org/grpc/otelgrpc v0.45.0
 	golang.org/x/tools v0.14.0

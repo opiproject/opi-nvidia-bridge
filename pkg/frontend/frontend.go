@@ -19,6 +19,7 @@ import (
 type Server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
 	VirtioCtrls map[string]*pb.VirtioBlk
+	NQNs        map[string]bool
 	Pagination  map[string]int
 	store       gokv.Store
 	rpc         spdk.JSONRPC
@@ -34,6 +35,7 @@ func NewServer(jsonRPC spdk.JSONRPC, store gokv.Store) *Server {
 	}
 	return &Server{
 		VirtioCtrls: make(map[string]*pb.VirtioBlk),
+		NQNs:        make(map[string]bool),
 		Pagination:  make(map[string]int),
 		store:       store,
 		rpc:         jsonRPC,

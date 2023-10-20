@@ -58,9 +58,9 @@ func (s *Server) CreateNvmeSubsystem(ctx context.Context, in *pb.CreateNvmeSubsy
 		return subsys, nil
 	}
 	// check if another object exists with same NQN, it is not allowed
-	for _, item := range s.Subsystems {
-		if in.NvmeSubsystem.Spec.Nqn == item.Spec.Nqn {
-			msg := fmt.Sprintf("Could not create NQN: %s since object %s with same NQN already exists", in.NvmeSubsystem.Spec.Nqn, item.Name)
+	for nqn := range s.NQNs {
+		if in.NvmeSubsystem.Spec.Nqn == nqn {
+			msg := fmt.Sprintf("Could not create NQN: %s since object with same NQN already exists", nqn)
 			return nil, status.Errorf(codes.AlreadyExists, msg)
 		}
 	}
@@ -88,6 +88,8 @@ func (s *Server) CreateNvmeSubsystem(ctx context.Context, in *pb.CreateNvmeSubsy
 	log.Printf("Received from SPDK: %v", ver)
 	response := utils.ProtoClone(in.NvmeSubsystem)
 	response.Status = &pb.NvmeSubsystemStatus{FirmwareRevision: ver.Version}
+	// save object to the database
+	s.NQNs[in.NvmeSubsystem.Spec.Nqn] = false
 	err = s.store.Set(in.NvmeSubsystem.Name, response)
 	if err != nil {
 		return nil, err
@@ -128,6 +130,7 @@ func (s *Server) DeleteNvmeSubsystem(ctx context.Context, in *pb.DeleteNvmeSubsy
 		return nil, status.Errorf(codes.InvalidArgument, msg)
 	}
 	// remove from the Database
+	delete(s.NQNs, subsys.Spec.Nqn)
 	err = s.store.Delete(subsys.Name)
 	if err != nil {
 		return nil, err

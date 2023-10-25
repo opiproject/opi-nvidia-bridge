@@ -460,10 +460,10 @@ github.com/onsi/gomega v1.7.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.28.0 h1:i2rg/p9n/UqIDAMFUJ6qIUUMcsqOuUHgbpbu235Vr1c=
 github.com/opiproject/gospdk v0.0.0-20231016193945-967dd4230965 h1:YWUGv6YAY0z5iLmwTFYVCpbSmV7UaVYNMxV5Hjum+uo=
 github.com/opiproject/gospdk v0.0.0-20231016193945-967dd4230965/go.mod h1:4i/bQT2D9Os0VaZGj1H6GCyK9Um/DVBzCLxObnr/60I=
-github.com/opiproject/opi-api v0.0.0-20231016162146-d81cc5ee60d4 h1:q20p6Hg4Un2St+vnw1b1sMSYTDg6bK0PbNrMb5xi7QU=
-github.com/opiproject/opi-api v0.0.0-20231016162146-d81cc5ee60d4/go.mod h1:92pv4ulvvPMuxCJ9ND3aYbmBfEMLx0VCjpkiR7ZTqPY=
-github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231016193849-71ff9369659f h1:tyULK3JCXNh1eSNVhS7TtP+y4wINYqKDUZCkmtR5U4o=
-github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231016193849-71ff9369659f/go.mod h1:Ix+f5kzFgrLoHB0JFs6Cck86/k4S+wrxZS54KDvChBo=
+github.com/opiproject/opi-api v0.0.0-20231024064347-7cfc2845903f h1:/IXOSHQb6d9sqsTIqS5t8eyyzYpZcKGQBJtaNrfXZmQ=
+github.com/opiproject/opi-api v0.0.0-20231024064347-7cfc2845903f/go.mod h1:92pv4ulvvPMuxCJ9ND3aYbmBfEMLx0VCjpkiR7ZTqPY=
+github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231024141026-c7fb111b359b h1:KC2JoX3dNx+onXshDHPFURJfOOCyI9IeZcg/uHLP+0U=
+github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231024141026-c7fb111b359b/go.mod h1:o+x5lPkV34jgo2TnkK3gKQkAmqhsGIBTtuvHwp37WAg=
 github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231021100448-06e6f022fa94 h1:EDhMArgJBWcUCk1rM10uh8C7eDEiRpowfja4tw/78MM=
 github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231021100448-06e6f022fa94/go.mod h1:EV3fyMFe5r/Lyxlwr2YESnOS6bRHmh7nLqdIaZYhKSc=
 github.com/opiproject/opi-strongswan-bridge v0.1.1 h1:Mz/8AtA0DD8O/H9jCsDw7wuVoWNiqgXICLsD10XWJ+g=
@@ -529,7 +529,7 @@ github.com/quasilyte/regex/syntax v0.0.0-20210819130434-b3f0c404a727/go.mod h1:r
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567 h1:M8mH9eK4OUR4lu7Gd+PU1fV2/qnDNfzT635KRSObncs=
 github.com/quasilyte/stdinfo v0.0.0-20220114132959-f7386bf02567/go.mod h1:DWNGW8A4Y+GyBgPuaQJuWiy0XYftx4Xm/y5Jqk9I6VQ=
 github.com/rogpeppe/go-internal v1.3.0/go.mod h1:M8bDsm7K2OlrFYOpmOWEs/qY81heoFRclV5y23lUDJ4=
-github.com/rogpeppe/go-internal v1.10.0 h1:TMyTOH3F/DB16zRVcYyreMH6GnZZrwQVAoYjRBZyWFQ=
+github.com/rogpeppe/go-internal v1.11.0 h1:cWPaGQEPrBb5/AsnsZesgZZ9yb1OQ+GOISoDNXVBh4M=
 github.com/rs/xid v1.4.0/go.mod h1:trrq9SKmegXys3aeAKXMUTdJsYXVwGY3RLcfgqegfbg=
 github.com/rs/zerolog v1.29.0 h1:Zes4hju04hjbvkVkOhdl2HpZa+0PmVwigmo8XoORE5w=
 github.com/rs/zerolog v1.29.0/go.mod h1:NILgTygv/Uej1ra5XxGf82ZFSLk58MFGAUS2o6usyD0=

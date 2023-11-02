@@ -75,6 +75,11 @@ services:
     image: docker.io/namely/grpc-cli
     networks:
       - opi
+    depends_on:
+      opi-gw-test:
+        condition: service_completed_successfully
+      opi-jaeger-test:
+        condition: service_completed_successfully
     command: ls opi-nvidia-server:50051 opi_api.storage.v1.FrontendNvmeService -l
 
   opi-client:

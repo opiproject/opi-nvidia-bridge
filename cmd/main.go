@@ -135,7 +135,7 @@ func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string, store gokv
 	pb.RegisterAioVolumeServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterMiddleendEncryptionServiceServer(s, middleendOpiSpdkServer)
 	pc.RegisterInventoryServiceServer(s, &inventory.Server{})
-	ps.RegisterIPsecServer(s, &ipsec.Server{})
+	ps.RegisterIPsecServiceServer(s, &ipsec.Server{})
 
 	reflection.Register(s)
 

@@ -460,6 +460,8 @@ github.com/onsi/gomega v1.7.0/go.mod h1:ex+gbHU/CVuBBDIJjb2X0qEXbFg53c61hWP/1Cpa
 github.com/onsi/gomega v1.28.1 h1:MijcGUbfYuznzK/5R4CPNoUP/9Xvuo20sXfEm6XxoTA=
 github.com/opiproject/gospdk v0.0.0-20231105064523-798720b90315 h1:xU49O3Xa+fD2hX34+bXVLlT0jIC1sTKhxY0AwNPTGc8=
 github.com/opiproject/gospdk v0.0.0-20231105064523-798720b90315/go.mod h1:Dyq0xUyjz1gqq8hVtAbBlqcf6YcQhZaYo7UF0t7Vbvs=
+github.com/opiproject/gospdk v0.0.0-20231106063554-36ab50606e9c h1:DCN/lrpGJeMFyxH2BH7hBhbh7390lo4Bhp4zbqqS3uk=
+github.com/opiproject/gospdk v0.0.0-20231106063554-36ab50606e9c/go.mod h1:Dyq0xUyjz1gqq8hVtAbBlqcf6YcQhZaYo7UF0t7Vbvs=
 github.com/opiproject/opi-api v0.0.0-20231030062733-bbe47cce6d77 h1:7XbMFmFH42T9QY2DjL8s5VVU25cdEdDznBDnmUm3YcE=
 github.com/opiproject/opi-api v0.0.0-20231030062733-bbe47cce6d77/go.mod h1:92pv4ulvvPMuxCJ9ND3aYbmBfEMLx0VCjpkiR7ZTqPY=
 github.com/opiproject/opi-api v0.0.0-20231106063049-7979f3e83669 h1:KUPG9eDkL6loowjRSwcfP1PS0pJ2u1ikAw+JiQ7v77c=

@@ -11,7 +11,7 @@ require (
 	github.com/opiproject/gospdk v0.0.0-20231120072346-996905a8e6d2
 	github.com/opiproject/opi-api v0.0.0-20231120071940-7b62be4a63bd
 	github.com/opiproject/opi-smbios-bridge v0.1.3-0.20231125032256-38107633f91d
-	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231118130531-7911fb9d2292
+	github.com/opiproject/opi-spdk-bridge v0.1.2-0.20231125125051-a7e03fb4e2cc
 	github.com/opiproject/opi-strongswan-bridge v0.1.2-0.20231115195255-98da6e9a8225
 	github.com/philippgille/gokv v0.6.0
 	github.com/philippgille/gokv/gomap v0.6.0
@@ -206,10 +206,10 @@ require (
 	gitlab.com/bosi/decorder v0.4.1 // indirect
 	go-simpler.org/sloglint v0.1.2 // indirect
 	go.opentelemetry.io/otel v1.21.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.20.0 // indirect
-	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.20.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.21.0 // indirect
+	go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracegrpc v1.21.0 // indirect
 	go.opentelemetry.io/otel/metric v1.21.0 // indirect
-	go.opentelemetry.io/otel/sdk v1.20.0 // indirect
+	go.opentelemetry.io/otel/sdk v1.21.0 // indirect
 	go.opentelemetry.io/otel/trace v1.21.0 // indirect
 	go.opentelemetry.io/proto/otlp v1.0.0 // indirect
 	go.tmz.dev/musttag v0.7.2 // indirect

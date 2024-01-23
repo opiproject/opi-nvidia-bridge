@@ -27,7 +27,7 @@ func (s *Server) validateCreateNvmeControllerRequest(in *pb.CreateNvmeController
 		}
 	}
 
-	if in.NvmeController.Spec.Trtype != pb.NvmeTransportType_NVME_TRANSPORT_PCIE {
+	if in.NvmeController.Spec.Trtype != pb.NvmeTransportType_NVME_TRANSPORT_TYPE_PCIE {
 		return fmt.Errorf("not supported transport type: %v", in.NvmeController.Spec.Trtype)
 	}
 

@@ -394,15 +394,6 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 			size:    0,
 			token:   "",
 		},
-		"no required field": {
-			in:      "",
-			out:     []*pb.VirtioBlk{},
-			spdk:    []string{},
-			errCode: codes.Unknown,
-			errMsg:  "missing required field: parent",
-			size:    0,
-			token:   "",
-		},
 	}
 
 	// run tests
@@ -413,7 +404,7 @@ func TestFrontEnd_ListVirtioBlks(t *testing.T) {
 
 			testEnv.opiSpdkServer.Pagination["existing-pagination-token"] = 1
 
-			request := &pb.ListVirtioBlksRequest{Parent: tt.in, PageSize: tt.size, PageToken: tt.token}
+			request := &pb.ListVirtioBlksRequest{PageSize: tt.size, PageToken: tt.token}
 			response, err := testEnv.client.ListVirtioBlks(testEnv.ctx, request)
 
 			if !utils.EqualProtoSlices(response.GetVirtioBlks(), tt.out) {

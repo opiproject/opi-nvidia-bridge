@@ -18,6 +18,7 @@ import (
 // Server contains frontend related OPI services
 type Server struct {
 	pb.UnimplementedFrontendNvmeServiceServer
+	pb.UnimplementedFrontendVirtioBlkServiceServer
 	VirtioCtrls map[string]*pb.VirtioBlk
 	NQNs        map[string]bool
 	Pagination  map[string]int

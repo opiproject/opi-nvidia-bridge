@@ -133,6 +133,7 @@ func runGrpcServer(grpcPort int, spdkAddress string, tlsFiles string, store gokv
 	pb.RegisterFrontendVirtioScsiServiceServer(s, frontendOpiSpdkServer)
 	pb.RegisterNvmeRemoteControllerServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterNullVolumeServiceServer(s, backendOpiSpdkServer)
+	pb.RegisterMallocVolumeServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterAioVolumeServiceServer(s, backendOpiSpdkServer)
 	pb.RegisterMiddleendEncryptionServiceServer(s, middleendOpiSpdkServer)
 	pc.RegisterInventoryServiceServer(s, &inventory.Server{})
@@ -160,6 +161,7 @@ func runGatewayServer(grpcPort int, httpPort int) {
 
 	registerGatewayHandler(ctx, mux, endpoint, opts, pb.RegisterAioVolumeServiceHandlerFromEndpoint, "backend aio")
 	registerGatewayHandler(ctx, mux, endpoint, opts, pb.RegisterNullVolumeServiceHandlerFromEndpoint, "backend null")
+	registerGatewayHandler(ctx, mux, endpoint, opts, pb.RegisterMallocVolumeServiceHandlerFromEndpoint, "backend malloc")
 	registerGatewayHandler(ctx, mux, endpoint, opts, pb.RegisterNvmeRemoteControllerServiceHandlerFromEndpoint, "backend nvme")
 
 	registerGatewayHandler(ctx, mux, endpoint, opts, pb.RegisterMiddleendEncryptionServiceHandlerFromEndpoint, "middleend encryption")

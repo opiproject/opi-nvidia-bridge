@@ -60,6 +60,16 @@ sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s VIRTIO_BLK_EMULATION_NUM_PF=2 VIRT
 
 And then power cycle your system.
 
+## Snap Service
+
+start from systemd:
+
+```bash
+sudo systemctl start mlnx_snap
+```
+
+or from container, see [documentation](https://docs.nvidia.com/networking/display/bluefield3snaplatest/snap+deployment)
+
 ## Using docker
 
 on DPU/IPU (i.e. with IP=10.10.10.1) run

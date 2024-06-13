@@ -60,6 +60,8 @@ sudo mlxconfig -d /dev/mst/mt41686_pciconf0 s VIRTIO_BLK_EMULATION_NUM_PF=2 VIRT
 
 And then power cycle your system.
 
+For additional config options, see [documentation](https://docs.nvidia.com/networking/display/bluefield3snaplatest/snap+deployment)
+
 ## Snap Service
 
 start from systemd:

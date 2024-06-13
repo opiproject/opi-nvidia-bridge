@@ -70,6 +70,8 @@ sudo systemctl start mlnx_snap
 
 or from container, see [documentation](https://docs.nvidia.com/networking/display/bluefield3snaplatest/snap+deployment)
 
+Make sure `/var/tmp/spdk.sock` is created. OPI bridge is using it to communicate with SNAP service.
+
 ## Using docker
 
 on DPU/IPU (i.e. with IP=10.10.10.1) run
